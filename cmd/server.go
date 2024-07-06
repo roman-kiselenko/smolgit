@@ -2,44 +2,49 @@ package cmd
 
 import (
 	"log/slog"
-	"os"
 
-	"git-pebble/internal/db"
+	sloggin "github.com/samber/slog-gin"
+	altsrc "github.com/urfave/cli-altsrc/v3"
+
 	"git-pebble/internal/route"
 
 	"github.com/gin-gonic/gin"
-	sloggin "github.com/samber/slog-gin"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 )
 
-func Server(log *slog.Logger, dbPath, address string) cli.Command {
-	return cli.Command{
+func Server(log *slog.Logger, version string) *cli.Command {
+	return &cli.Command{
 		Name:        "server",
 		Usage:       "Start server",
 		Description: "gitPebble server handles all stuff for you",
-		Action:      runServer(log, dbPath, address),
+		Version:     version,
+		Action:      runServer(log),
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "address",
+				Aliases: []string{"a"},
+				Sources: altsrc.YAML("server.address", []string{"./config.yaml"}...),
+			},
+		},
 	}
 }
 
-func runServer(log *slog.Logger, dbPath, address string) error {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router.Use(sloggin.New(log))
-	router.Use(gin.Recovery())
+func runServer(log *slog.Logger) func(ctx *cli.Context) error {
+	return func(ctx *cli.Context) error {
+		gin.SetMode(gin.ReleaseMode)
+		router := gin.New()
+		router.Use(sloggin.New(log))
+		router.Use(gin.Recovery())
 
-	database, err := db.New(dbPath)
-	if err != nil {
-		slog.Error("cant connect sqlite", "error", err)
-		os.Exit(1)
+		r, err := route.New()
+		if err != nil {
+			return err
+		}
+
+		router.GET("/", r.Index)
+
+		addr := ctx.String("address")
+		log.Info("Start gitPebble instance...", "address", addr)
+		return router.Run(addr)
 	}
-	r, err := route.New(database)
-	if err != nil {
-		slog.Error("cant init routes", "error", err)
-		os.Exit(1)
-	}
-
-	router.GET("/", r.Index)
-
-	log.Info("Start gitPebble instance...", "address", address)
-	return router.Run(address)
 }
