@@ -16,15 +16,15 @@ all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	CGO_ENABLED=0 $(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/gitpebble .
+	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/gitpebble .
 
 ## Clean:
 clean: ## Remove build related file
 	-rm -fr ./bin
 
 ## Run:
-run: ## Run the gitpebble `make run`
-	./bin/gitpebble $(ARGS)
+run: build ## Run the gitpebble `make run`
+	@./bin/gitpebble $(ARGS)
 
 ## Test:
 test: ## Run the tests of the gitpebble
