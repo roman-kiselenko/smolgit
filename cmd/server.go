@@ -76,12 +76,14 @@ func runServer(ctx *cli.Context) error {
 		logger.Error("cant connect sqlite", "error", err)
 		return err
 	}
-	r, err := route.New(logger, database)
+	r, err := route.New(logger, router, database)
 	if err != nil {
 		return err
 	}
 
 	router.GET("/", r.Index)
+	router.GET("/css/styles.css", r.Styles)
+	router.GET("/repos", r.Repos)
 
 	addr := ctx.String("address")
 

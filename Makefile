@@ -23,7 +23,7 @@ clean: ## Remove build related file
 	-rm -fr ./bin
 
 ## Run:
-run: build ## Run the smollgit `make run`
+run: clean build ## Run the smollgit `make run`
 	@./bin/smollgit $(ARGS)
 
 ## Test:
