@@ -1,0 +1,9 @@
+body {
+    width: 100%;
+    margin: 0;
+    --global-font-size: 0.8em;
+}
+
+th {
+  text-align: left;
+}

@@ -1,15 +1,18 @@
-# smollgit
+## smolgit
 
-**smollgit** is a super small and efficient git repository management tool. It offers a minimalist interface with essential [git](https://git-scm.com/) functionalities, making it perfect for small teams or individual developers.
+**smolgit** offers a minimalist interface with essential [git](https://git-scm.com/) functionalities, making it perfect for small teams or individual developers.
 
-## Feature
+### Motivation
+**smolgit** is perfect for those who value simplicity and efficiency in their workflow. Join us in our mission to create a more focused and accessible git experience. Our goal is to eliminate the bloat and offer a tool that is easy to set up, use, and maintain, without sacrificing the critical capabilities that developers rely on.
+
+### Feature
 
  - git operations
  - repository visualization
  - diffs and file content
  - collabration tools
 
-## Getting Started
+### Getting Started
 
 TBD
 
@@ -17,6 +20,7 @@ TBD
 
 - go (>= 1.22+)
 - git
+- sqlite
 
 ### Installation
 
@@ -29,6 +33,12 @@ TBD
 3. **diffs and file content**: See diffs for changes and view the content of non-binary files.
 4. **collaboration tools**: Create and manage issues, merge requests, and comments.
 5. **team management**: Create teams and invite users to collaborate.
+
+## Built with
+
+- [gin](https://github.com/gin-gonic/gin)
+- [terminalcss](https://terminalcss.xyz)
+- [sqlite](https://www.sqlite.org/)
 
 ## Contact
 

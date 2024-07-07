@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"smollgit/cmd"
+	"smolgit/cmd"
 )
 
 var Version = "dev"

@@ -5,6 +5,6 @@ log:
 server:
   address: ":3080"
 git:
-  path: /tmp/smollgit
+  path: /tmp/smolgit
 db:
   path: ./database.sqlite

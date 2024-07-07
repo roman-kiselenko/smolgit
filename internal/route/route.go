@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"smollgit/internal/db"
+	"smolgit/internal/db"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,12 +45,25 @@ func (r *Route) Repos(c *gin.Context) {
 	})
 }
 
-//go:embed templates/css/chota.min.css
-var stylesFs embed.FS
+//go:embed templates/css
+var styleFs embed.FS
 
-func (r *Route) Styles(c *gin.Context) {
-	r.logger.Debug("hit", "route", "styles")
+func (r *Route) ExternalStyle(c *gin.Context) {
+	r.logger.Debug("hit", "route", "style")
 	c.Header("Content-Type", "text/css")
-	data, _ := stylesFs.ReadFile("templates/css/chota.min.css")
+	data, err := styleFs.ReadFile("templates/css/terminal.min.css")
+	if err != nil {
+		panic(err)
+	}
+	_, _ = c.Writer.Write(data)
+}
+
+func (r *Route) Style(c *gin.Context) {
+	r.logger.Debug("hit", "route", "style")
+	c.Header("Content-Type", "text/css")
+	data, err := styleFs.ReadFile("templates/css/style.css")
+	if err != nil {
+		panic(err)
+	}
 	_, _ = c.Writer.Write(data)
 }

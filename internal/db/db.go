@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"log/slog"
 
-	"smollgit/internal/password"
+	"smolgit/internal/password"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"

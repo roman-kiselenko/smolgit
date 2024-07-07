@@ -9,7 +9,7 @@ RUN adduser \
   --uid 65532 \
   small-user
 
-WORKDIR $GOPATH/src/smollgit/
+WORKDIR $GOPATH/src/smolgit/
 
 COPY . .
 
@@ -20,8 +20,8 @@ RUN GOOS=linux GOARCH=amd64 go build -o .
 
 FROM gcr.io/distroless/static-debian11
 
-COPY --from=base $GOPATH/src/smollgit .
+COPY --from=base $GOPATH/src/smolgit .
 
 USER small-user:small-user
 
-CMD ["./smollgit"]
+CMD ["./smolgit"]

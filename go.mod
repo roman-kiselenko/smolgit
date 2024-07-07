@@ -1,4 +1,4 @@
-module smollgit
+module smolgit
 
 go 1.22.4
 

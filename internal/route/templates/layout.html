@@ -6,9 +6,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ . }}</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/terminal.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-  <body>
+  <body class="container">
+    <div class="terminal-nav">
+        <div class="terminal-logo">
+          <div class="logo terminal-prompt"><a href="#" class="no-style">smolgit</a></div>
+        </div>
+        <nav class="terminal-menu">
+          <ul>
+            <li><a class="menu-item" href="#">About</a></li>
+            <li><a class="menu-item" href="#">Users</a></li>
+            <li><a class="menu-item active" href="#">Repositories</a></li>
+          </ul>
+        </nav>
+      </div>
   </body>
 </html>
 {{ end }}

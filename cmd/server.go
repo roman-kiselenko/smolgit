@@ -9,8 +9,8 @@ import (
 	sloggin "github.com/samber/slog-gin"
 	altsrc "github.com/urfave/cli-altsrc/v3"
 
-	"smollgit/internal/db"
-	"smollgit/internal/route"
+	"smolgit/internal/db"
+	"smolgit/internal/route"
 
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v3"
@@ -25,7 +25,7 @@ func Server(version string) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Start server",
-		Description: "smollgit server handles all stuff for you",
+		Description: "smolgit server handles all stuff for you",
 		Version:     version,
 		Action:      runServer,
 		Flags: []cli.Flag{
@@ -82,12 +82,13 @@ func runServer(ctx *cli.Context) error {
 	}
 
 	router.GET("/", r.Index)
-	router.GET("/css/styles.css", r.Styles)
+	router.GET("/css/terminal.min.css", r.ExternalStyle)
+	router.GET("/css/style.css", r.Style)
 	router.GET("/repos", r.Repos)
 
 	addr := ctx.String("address")
 
-	logger.Info("start smollgit server", "address", addr)
+	logger.Info("start smolgit server", "address", addr)
 	return router.Run(addr)
 }
 

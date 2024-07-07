@@ -10,24 +10,24 @@ RESET  := $(shell tput -Txterm sgr0)
 
 .PHONY: all test build clean run
 
-PROJECT_NAME := smollgit
+PROJECT_NAME := smolgit
 
 all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smollgit .
+	@$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smolgit .
 
 ## Clean:
 clean: ## Remove build related file
-	-rm -fr ./bin
+	@-rm -fr ./bin
 
 ## Run:
-run: clean build ## Run the smollgit `make run`
-	@./bin/smollgit $(ARGS)
+run: clean build ## Run the smolgit `make run`
+	@./bin/smolgit $(ARGS)
 
 ## Test:
-test: ## Run the tests of the smollgit
+test: ## Run the tests of the smolgit
 	$(GOTEST) -v -race ./...
 
 ## Help:
