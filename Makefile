@@ -10,24 +10,24 @@ RESET  := $(shell tput -Txterm sgr0)
 
 .PHONY: all test build clean run
 
-PROJECT_NAME := gitpebble
+PROJECT_NAME := smollgit
 
 all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/gitpebble .
+	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smollgit .
 
 ## Clean:
 clean: ## Remove build related file
 	-rm -fr ./bin
 
 ## Run:
-run: build ## Run the gitpebble `make run`
-	@./bin/gitpebble $(ARGS)
+run: build ## Run the smollgit `make run`
+	@./bin/smollgit $(ARGS)
 
 ## Test:
-test: ## Run the tests of the gitpebble
+test: ## Run the tests of the smollgit
 	$(GOTEST) -v -race ./...
 
 ## Help:

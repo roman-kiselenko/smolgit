@@ -9,7 +9,7 @@ RUN adduser \
   --uid 65532 \
   small-user
 
-WORKDIR $GOPATH/src/gitpebble/
+WORKDIR $GOPATH/src/smollgit/
 
 COPY . .
 
@@ -20,8 +20,8 @@ RUN GOOS=linux GOARCH=amd64 go build -o .
 
 FROM gcr.io/distroless/static-debian11
 
-COPY --from=base $GOPATH/src/gitpebble .
+COPY --from=base $GOPATH/src/smollgit .
 
 USER small-user:small-user
 
-CMD ["./gitpebble"]
+CMD ["./smollgit"]

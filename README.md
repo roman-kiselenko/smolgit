@@ -1,6 +1,6 @@
-# gitPebble
+# smollgit
 
-**gitPebble** is a super small and efficient git repository management tool. It offers a minimalist interface with essential [git](https://git-scm.com/) functionalities, making it perfect for small teams or individual developers.
+**smollgit** is a super small and efficient git repository management tool. It offers a minimalist interface with essential [git](https://git-scm.com/) functionalities, making it perfect for small teams or individual developers.
 
 ## Feature
 

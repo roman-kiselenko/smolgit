@@ -6,7 +6,7 @@ import (
 	sloggin "github.com/samber/slog-gin"
 	altsrc "github.com/urfave/cli-altsrc/v3"
 
-	"git-pebble/internal/route"
+	"smollgit/internal/route"
 
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v3"
@@ -16,7 +16,7 @@ func Server(log *slog.Logger, version string) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Start server",
-		Description: "gitPebble server handles all stuff for you",
+		Description: "smollgit server handles all stuff for you",
 		Version:     version,
 		Action:      runServer(log),
 		Flags: []cli.Flag{
@@ -25,6 +25,7 @@ func Server(log *slog.Logger, version string) *cli.Command {
 				Aliases: []string{"a"},
 				Sources: altsrc.YAML("server.address", []string{"./config.yaml"}...),
 			},
+			&cli.StringMapFlag{},
 		},
 	}
 }
@@ -44,7 +45,7 @@ func runServer(log *slog.Logger) func(ctx *cli.Context) error {
 		router.GET("/", r.Index)
 
 		addr := ctx.String("address")
-		log.Info("Start gitPebble instance...", "address", addr)
+		log.Info("Start smollgit instance...", "address", addr)
 		return router.Run(addr)
 	}
 }

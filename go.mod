@@ -1,4 +1,4 @@
-module git-pebble
+module smollgit
 
 go 1.22.4
 

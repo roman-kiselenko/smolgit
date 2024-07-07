@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"git-pebble/cmd"
+	"smollgit/cmd"
 )
 
 var Version = "dev"
