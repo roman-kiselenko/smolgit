@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log/slog"
+	"log"
 	"os"
 
 	"smollgit/cmd"
@@ -11,13 +11,9 @@ import (
 var Version = "dev"
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-
-	app := cmd.Server(logger, Version)
+	app := cmd.Server(Version)
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		slog.Error("failed to start: %w", "error", err)
-		os.Exit(1)
+		log.Fatalf("failed to start: %s", err)
 	}
 }

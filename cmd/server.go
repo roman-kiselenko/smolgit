@@ -2,50 +2,116 @@ package cmd
 
 import (
 	"log/slog"
+	"os"
+	"time"
 
+	"github.com/lmittmann/tint"
 	sloggin "github.com/samber/slog-gin"
 	altsrc "github.com/urfave/cli-altsrc/v3"
 
+	"smollgit/internal/db"
 	"smollgit/internal/route"
 
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v3"
 )
 
-func Server(log *slog.Logger, version string) *cli.Command {
+var (
+	configs   = []string{"./config.yaml"}
+	logOutput = os.Stdout
+)
+
+func Server(version string) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Start server",
 		Description: "smollgit server handles all stuff for you",
 		Version:     version,
-		Action:      runServer(log),
+		Action:      runServer,
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:    "log_color",
+				Value:   true,
+				Sources: altsrc.YAML("log.color", configs...),
+			},
+			&cli.BoolFlag{
+				Name:    "log_json",
+				Value:   false,
+				Sources: altsrc.YAML("log.json", configs...),
+			},
+			&cli.StringFlag{
+				Name:    "log_level",
+				Value:   "DEBUG",
+				Sources: altsrc.YAML("log.level", configs...),
+			},
 			&cli.StringFlag{
 				Name:    "address",
-				Aliases: []string{"a"},
-				Sources: altsrc.YAML("server.address", []string{"./config.yaml"}...),
+				Value:   ":8081",
+				Sources: altsrc.YAML("server.address", configs...),
 			},
-			&cli.StringMapFlag{},
+			&cli.StringFlag{
+				Name:    "git_path",
+				Sources: altsrc.YAML("git.path", configs...),
+			},
+			&cli.StringFlag{
+				Name:    "db_path",
+				Value:   "./database.sqlite",
+				Sources: altsrc.YAML("db.path", configs...),
+			},
 		},
 	}
 }
 
-func runServer(log *slog.Logger) func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		gin.SetMode(gin.ReleaseMode)
-		router := gin.New()
-		router.Use(sloggin.New(log))
-		router.Use(gin.Recovery())
+func runServer(ctx *cli.Context) error {
+	logger := initLogger(ctx)
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(sloggin.New(logger))
+	router.Use(gin.Recovery())
 
-		r, err := route.New()
-		if err != nil {
-			return err
-		}
+	dbPath := ctx.String("db_path")
 
-		router.GET("/", r.Index)
-
-		addr := ctx.String("address")
-		log.Info("Start smollgit instance...", "address", addr)
-		return router.Run(addr)
+	database, err := db.New(logger, dbPath)
+	if err != nil {
+		logger.Error("cant connect sqlite", "error", err)
+		return err
 	}
+	r, err := route.New(logger, database)
+	if err != nil {
+		return err
+	}
+
+	router.GET("/", r.Index)
+
+	addr := ctx.String("address")
+
+	logger.Info("start smollgit server", "address", addr)
+	return router.Run(addr)
+}
+
+func initLogger(ctx *cli.Context) *slog.Logger {
+	level := new(slog.LevelVar)
+	handler := &slog.HandlerOptions{
+		Level: level,
+	}
+	var logger *slog.Logger
+	if ctx.Bool("log_json") {
+		logger = slog.New(slog.NewJSONHandler(logOutput, handler))
+	} else {
+		if ctx.Bool("log_color") {
+			logger = slog.New(tint.NewHandler(logOutput, &tint.Options{
+				Level:      level,
+				TimeFormat: time.Kitchen,
+			}))
+		} else {
+			logger = slog.New(slog.NewTextHandler(logOutput, handler))
+		}
+	}
+
+	slog.SetDefault(logger)
+	if err := level.UnmarshalText([]byte(ctx.String("log_level"))); err != nil {
+		level.Set(slog.LevelDebug)
+	}
+
+	return logger
 }

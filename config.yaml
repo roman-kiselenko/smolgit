@@ -1,3 +1,10 @@
+log:
+  color: true
+  json: false
+  level: DEBUG
 server:
   address: ":3080"
-path: /tmp/smollgit
+git:
+  path: /tmp/smollgit
+db:
+  path: ./database.sqlite
