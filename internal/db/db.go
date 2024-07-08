@@ -46,3 +46,7 @@ func New(logger *slog.Logger, dbPath string) (*Database, error) {
 	}
 	return db, nil
 }
+
+func (db *Database) FindPubKey(key string) (string, error) {
+	return "", nil
+}

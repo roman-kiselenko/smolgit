@@ -4,6 +4,15 @@ log:
   level: DEBUG
 server:
   address: ":3080"
+  brand: "smolgit"
+ssh:
+  domain:
+	port:
+	root_path:
+	keygen_path:
+	key_test_path:
+	listen_host:
+	listen_port:
 git:
   path: /tmp/smolgit
 db:

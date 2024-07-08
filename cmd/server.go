@@ -11,13 +11,14 @@ import (
 
 	"smolgit/internal/db"
 	"smolgit/internal/route"
+	"smolgit/internal/ssh"
 
 	"github.com/gin-gonic/gin"
 	"github.com/urfave/cli/v3"
 )
 
 var (
-	configs   = []string{"./config.yaml"}
+	configs   = []string{"./config.yaml", "./config.yml"}
 	logOutput = os.Stdout
 )
 
@@ -27,7 +28,7 @@ func Server(version string) *cli.Command {
 		Usage:       "Start server",
 		Description: "smolgit server handles all stuff for you",
 		Version:     version,
-		Action:      runServer,
+		Action:      initApp,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "log_color",
@@ -45,12 +46,18 @@ func Server(version string) *cli.Command {
 				Sources: altsrc.YAML("log.level", configs...),
 			},
 			&cli.StringFlag{
-				Name:    "address",
+				Name:    "server_address",
 				Value:   ":8081",
 				Sources: altsrc.YAML("server.address", configs...),
 			},
 			&cli.StringFlag{
+				Name:    "server_brand",
+				Value:   "smolgit",
+				Sources: altsrc.YAML("server.brand", configs...),
+			},
+			&cli.StringFlag{
 				Name:    "git_path",
+				Value:   "/tmp/smolgit",
 				Sources: altsrc.YAML("git.path", configs...),
 			},
 			&cli.StringFlag{
@@ -62,7 +69,7 @@ func Server(version string) *cli.Command {
 	}
 }
 
-func runServer(ctx *cli.Context) error {
+func initApp(ctx *cli.Context) error {
 	logger := initLogger(ctx)
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -86,10 +93,26 @@ func runServer(ctx *cli.Context) error {
 	router.GET("/css/style.css", r.Style)
 	router.GET("/repos", r.Repos)
 
-	addr := ctx.String("address")
+	addr := ctx.String("server_address")
 
-	logger.Info("start smolgit server", "address", addr)
+	if fileName, ok := checkConfigFiles(); ok {
+		logger.Info("found config file", "config", fileName)
+	}
+	logger.Info("init sqlite database", "db_path", dbPath)
+	logger.Info("init git directory", "directory", ctx.String("git_path"))
+	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
+
+	ssh.Listen(logger, database, ctx)
 	return router.Run(addr)
+}
+
+func checkConfigFiles() (string, bool) {
+	for _, f := range configs {
+		if _, err := os.Stat(f); err == nil {
+			return f, true
+		}
+	}
+	return "", false
 }
 
 func initLogger(ctx *cli.Context) *slog.Logger {
