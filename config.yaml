@@ -3,16 +3,10 @@ log:
   json: false
   level: DEBUG
 server:
-  address: ":3080"
+  addr: ":3080"
   brand: "smolgit"
 ssh:
-  domain:
-	port:
-	root_path:
-	keygen_path:
-	key_test_path:
-	listen_host: ""
-	listen_port: 3180
+	addr: ":3081"
 git:
   path: /tmp/smolgit
 db:

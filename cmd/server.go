@@ -31,14 +31,9 @@ func Server(version string) *cli.Command {
 		Action:      initApp,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "ssh_listen_host",
-				Value:   "localhost",
-				Sources: altsrc.YAML("ssh.listen_host", configs...),
-			},
-			&cli.IntFlag{
-				Name:    "ssh_listen_port",
-				Value:   3080,
-				Sources: altsrc.YAML("ssh.listen_port", configs...),
+				Name:    "ssh_addr",
+				Value:   ":3081",
+				Sources: altsrc.YAML("ssh.addr", configs...),
 			},
 			&cli.BoolFlag{
 				Name:    "log_color",
@@ -56,9 +51,9 @@ func Server(version string) *cli.Command {
 				Sources: altsrc.YAML("log.level", configs...),
 			},
 			&cli.StringFlag{
-				Name:    "server_address",
-				Value:   ":8081",
-				Sources: altsrc.YAML("server.address", configs...),
+				Name:    "server_addr",
+				Value:   ":3080",
+				Sources: altsrc.YAML("server.addr", configs...),
 			},
 			&cli.StringFlag{
 				Name:    "server_brand",
@@ -95,6 +90,7 @@ func initApp(ctx *cli.Context) error {
 	}
 	r, err := route.New(logger, router, database)
 	if err != nil {
+		logger.Error("cant create routes", "error", err)
 		return err
 	}
 
@@ -103,7 +99,7 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/css/style.css", r.Style)
 	router.GET("/repos", r.Repos)
 
-	addr := ctx.String("server_address")
+	addr := ctx.String("server_addr")
 
 	if fileName, ok := checkConfigFiles(); ok {
 		logger.Info("found config file", "config", fileName)
@@ -112,7 +108,13 @@ func initApp(ctx *cli.Context) error {
 	logger.Info("init git directory", "directory", ctx.String("git_path"))
 	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
 
-	ssh.Listen(logger, database, ctx)
+	sshServer, err := ssh.New(logger, database, ctx)
+	if err != nil {
+		logger.Error("cant run ssh server", "error", err)
+		return err
+
+	}
+	go sshServer.ListenAndServe()
 	return router.Run(addr)
 }
 

@@ -1,214 +1,83 @@
 package ssh
 
 import (
-	"errors"
-	"fmt"
-	"io"
+	"bytes"
 	"log/slog"
-	"net"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"syscall"
 
 	"smolgit/internal/db"
 
+	"github.com/gliderlabs/ssh"
+	gssh "golang.org/x/crypto/ssh"
+
 	"github.com/urfave/cli/v3"
-	"golang.org/x/crypto/ssh"
 )
 
-// Code below partially based on https://github.com/gogs/gogs/blob/main/internal/ssh/ssh.go
+type SSHServer struct {
+	addr string
 
-func Listen(logger *slog.Logger, db *db.Database, ctx *cli.Context) {
-	appDataPath := ctx.String("git_path")
-	config := &ssh.ServerConfig{
-		Config: ssh.Config{},
-		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
-			pkey, err := db.FindPubKey(strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key))))
-			if err != nil {
-				logger.Error("cant find pubkey", "err", err)
-				return nil, err
+	logger *slog.Logger
+	ssh    *ssh.Server
+}
+
+func New(logger *slog.Logger, db *db.Database, clictx *cli.Context) (*SSHServer, error) {
+	srv := &SSHServer{
+		logger: logger,
+		addr:   clictx.String("ssh_addr"),
+	}
+
+	srv.ssh = &ssh.Server{
+		Handler: func(s ssh.Session) {
+			cmd := s.Command()
+			logger.Info("new connection", "cmd", cmd)
+
+			if len(cmd) == 0 {
+				cmd = []string{"whoami"}
 			}
-			return &ssh.Permissions{Extensions: map[string]string{"key-id": pkey}}, nil
+
+			var exit int
+
+			switch cmd[0] {
+			case "whoami":
+				// _ = writeStringFmt(s, "logged in as %s\r\n", user.Username)
+				// exit = cmdWhoami(ctx, s, cmd)
+				exit = -1
+			case "git-receive-pack":
+				// exit = srv.cmdRepoAction(ctx, s, cmd, AccessLevelWrite)
+				exit = -1
+			case "git-upload-pack":
+				// exit = srv.cmdRepoAction(ctx, s, cmd, AccessLevelRead)
+				exit = -1
+			default:
+				logger.Debug("command not found\r\n", "cmd", cmd[0])
+				exit = 1
+			}
+
+			logger.Info("return_code", "code", exit)
+			_ = s.Exit(exit)
+		},
+		PublicKeyHandler: func(ctx ssh.Context, incomingKey ssh.PublicKey) bool {
+			logger.Info("handle key", "remote_user", ctx.User(), "remote_addr", ctx.RemoteAddr().String())
+
+			remoteUser := ctx.User()
+
+			user, err := db.FindUserFromKey(
+				string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(incomingKey))),
+				remoteUser,
+			)
+			if err != nil {
+				logger.Error("user not found", "err", err)
+				return false
+			}
+			logger.Debug("found user", "user", user)
+			return true
 		},
 	}
 
-	keys, err := setupHostKeys(logger, ctx.String("ssh_keygen_path"), appDataPath, []string{})
-	if err != nil {
-		logger.Error("Failed to setup host keys", "err", err)
-		os.Exit(1)
-
-	}
-	for _, key := range keys {
-		config.AddHostKey(key)
-	}
-
-	go listen(logger, config, appDataPath, ctx.String("ssh_listen_host"), int(ctx.Int("ssh_listen_port")))
+	return srv, nil
 }
 
-func listen(logger *slog.Logger, config *ssh.ServerConfig, appDataPath, host string, port int) {
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		logger.Error("Failed to start SSH server", "err", err)
-		os.Exit(1)
-	}
-	logger.Info("start ssh", "address", fmt.Sprintf("%s:%d", host, port))
-	for {
-		// Once a ServerConfig has been configured, connections can be accepted.
-		conn, err := listener.Accept()
-		if err != nil {
-			logger.Error("Error accepting incoming connection", "err", err)
-			continue
-		}
-
-		go func() {
-			logger.Debug("Handshaking for", "addr", conn.RemoteAddr())
-			sConn, chans, reqs, err := ssh.NewServerConn(conn, config)
-			if err != nil {
-				if err == io.EOF || errors.Is(err, syscall.ECONNRESET) {
-					logger.Debug("Handshaking was terminated", "err", err)
-				} else {
-					logger.Debug("Error on handshaking", "err", err)
-				}
-				return
-			}
-
-			logger.Debug("Got connection", "from", sConn.RemoteAddr(), "version", sConn.ClientVersion())
-			go ssh.DiscardRequests(reqs)
-			go handleServerConn(logger, appDataPath, sConn.Permissions.Extensions["key-id"], chans)
-		}()
-	}
-}
-
-func handleServerConn(logger *slog.Logger, appDataPath, keyID string, chans <-chan ssh.NewChannel) {
-	for newChan := range chans {
-		if newChan.ChannelType() != "session" {
-			_ = newChan.Reject(ssh.UnknownChannelType, "unknown channel type")
-			continue
-		}
-
-		ch, reqs, err := newChan.Accept()
-		if err != nil {
-			logger.Error("Error accepting channel", "err", err)
-			continue
-		}
-
-		go func(in <-chan *ssh.Request) {
-			defer func() {
-				_ = ch.Close()
-			}()
-			for req := range in {
-				// TODO check payload
-				payload := string(req.Payload)
-				switch req.Type {
-				case "env":
-					var env struct {
-						Name  string
-						Value string
-					}
-					if err := ssh.Unmarshal(req.Payload, &env); err != nil {
-						logger.Warn("Invalid env payload", "payload", req.Payload, "err", err)
-						continue
-					}
-					if env.Name == "" || env.Value == "" {
-						logger.Warn("SSH: Invalid env arguments", "env", env)
-						continue
-					}
-
-					// _, stderr, err := com.ExecCmd("env", fmt.Sprintf("%s=%s", env.Name, env.Value))
-					// if err != nil {
-					// 	logger.Warn("env", "key", err, "value", stderr)
-					// 	return
-					// }
-
-				case "exec":
-					cmdName := strings.TrimLeft(payload, "'()")
-					logger.Debug("Payload", "name", cmdName)
-
-					args := []string{"serv", "key-" + keyID}
-					// args := []string{"serv", "key-" + keyID, "--config=" + conf.CustomConf}
-					logger.Debug("Arguments", "args", args)
-					cmd := exec.Command(appDataPath, args...)
-					cmd.Env = append(os.Environ(), "SSH_ORIGINAL_COMMAND="+cmdName)
-
-					stdout, err := cmd.StdoutPipe()
-					if err != nil {
-						logger.Error("StdoutPipe", "err", err)
-						return
-					}
-					stderr, err := cmd.StderrPipe()
-					if err != nil {
-						logger.Error("StderrPipe", "err", err)
-						return
-					}
-					input, err := cmd.StdinPipe()
-					if err != nil {
-						logger.Error("StdinPipe", "err", err)
-						return
-					}
-
-					if err = cmd.Start(); err != nil {
-						logger.Error("Start", "err", err)
-						return
-					}
-
-					_ = req.Reply(true, nil)
-					go func() {
-						_, _ = io.Copy(input, ch)
-					}()
-					_, _ = io.Copy(ch, stdout)
-					_, _ = io.Copy(ch.Stderr(), stderr)
-
-					if err = cmd.Wait(); err != nil {
-						logger.Error("Wait", "err", err)
-						return
-					}
-
-					_, _ = ch.SendRequest("exit-status", false, []byte{0, 0, 0, 0})
-					return
-				default:
-				}
-			}
-		}(reqs)
-	}
-}
-
-func setupHostKeys(_ *slog.Logger, keygenPath, appDataPath string, algorithms []string) ([]ssh.Signer, error) {
-	dir := filepath.Join(appDataPath, "ssh")
-	err := os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		return nil, fmt.Errorf("create host key directory %w", err)
-	}
-
-	var hostKeys []ssh.Signer
-	for _, algo := range algorithms {
-		keyPath := filepath.Join(dir, "gogs."+algo)
-		// if !osutil.IsExist(keyPath) {
-		// 	args := []string{
-		// 		keygenPath,
-		// 		"-t", algo,
-		// 		"-f", keyPath,
-		// 		"-m", "PEM",
-		// 		"-N", run.Arg(""),
-		// 	}
-		// 	err = run.Cmd(context.Background(), args...).Run().Wait()
-		// 	if err != nil {
-		// 		return nil, fmt.Errorf("generate host key with args %v %w", args, err)
-		// 	}
-		// 	logger.Debug("New private key is generated", "keypath", keyPath)
-		// }
-
-		keyData, err := os.ReadFile(keyPath)
-		if err != nil {
-			return nil, fmt.Errorf("read host key %q %w", keyPath, err)
-		}
-		signer, err := ssh.ParsePrivateKey(keyData)
-		if err != nil {
-			return nil, fmt.Errorf("parse host key %q %w", keyPath, err)
-		}
-
-		hostKeys = append(hostKeys, signer)
-	}
-	return hostKeys, nil
+func (srv *SSHServer) ListenAndServe() error {
+	srv.logger.Info("starting SSH server", "addr", srv.addr)
+	srv.ssh.Addr = srv.addr
+	return srv.ssh.ListenAndServe()
 }
