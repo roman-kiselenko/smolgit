@@ -70,6 +70,21 @@ func Server(version string) *cli.Command {
 				Value:   "./database.sqlite",
 				Sources: altsrc.YAML("db.path", configs...),
 			},
+			&cli.StringFlag{
+				Name:    "root_login",
+				Value:   "root",
+				Sources: altsrc.YAML("root.login", configs...),
+			},
+			&cli.StringFlag{
+				Name:    "root_password",
+				Value:   "password",
+				Sources: altsrc.YAML("root.password", configs...),
+			},
+			&cli.StringSliceFlag{
+				Name:    "root_keys",
+				Value:   []string{},
+				Sources: altsrc.YAML("root.keys", configs...),
+			},
 		},
 	}
 }
@@ -81,9 +96,7 @@ func initApp(ctx *cli.Context) error {
 	router.Use(sloggin.New(logger))
 	router.Use(gin.Recovery())
 
-	dbPath := ctx.String("db_path")
-
-	database, err := db.New(logger, dbPath)
+	database, err := db.New(logger, ctx)
 	if err != nil {
 		logger.Error("cant connect sqlite", "error", err)
 		return err
@@ -98,13 +111,14 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/css/terminal.min.css", r.ExternalStyle)
 	router.GET("/css/style.css", r.Style)
 	router.GET("/repos", r.Repos)
+	router.GET("/users", r.Users)
 
 	addr := ctx.String("server_addr")
 
 	if fileName, ok := checkConfigFiles(); ok {
 		logger.Info("found config file", "config", fileName)
 	}
-	logger.Info("init sqlite database", "db_path", dbPath)
+	logger.Info("init sqlite database", "db_path", ctx.String("db_path"))
 	logger.Info("init git directory", "directory", ctx.String("git_path"))
 	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
 

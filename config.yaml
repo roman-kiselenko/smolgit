@@ -6,8 +6,13 @@ server:
   addr: ":3080"
   brand: "smolgit"
 ssh:
-	addr: ":3081"
+  addr: ":3081"
 git:
   path: /tmp/smolgit
 db:
   path: ./database.sqlite
+root:
+  login: "admin"
+  password: "root"
+  keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com

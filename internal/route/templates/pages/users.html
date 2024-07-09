@@ -1,0 +1,25 @@
+{{ $title := .title }}
+{{ template "layout" $title }}
+
+<main>
+  <table>
+      <caption>
+          Users
+      </caption>
+      <tbody>
+      </tbody><thead>
+          <tr>
+              <th>name</th>
+              <th>created at</th>
+          </tr>
+      </thead>
+      <tbody>
+        {{range .users}}
+            <tr>
+            <td>{{ .Login }}</td>
+            <td>{{ .CreatedAt }}</td>
+            </tr>
+        {{end}}
+      </tbody>
+  </table>
+</main>

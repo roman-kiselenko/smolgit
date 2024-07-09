@@ -26,6 +26,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database) (Rou
 		"templates/layout.html",
 		"templates/pages/index.html",
 		"templates/pages/repos.html",
+		"templates/pages/users.html",
 	))
 	ginEngine.SetHTMLTemplate(tmpl)
 	return Route{db: database, logger: logger}, nil
@@ -35,6 +36,15 @@ func (r *Route) Index(c *gin.Context) {
 	r.logger.Debug("hit", "route", "index")
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Index",
+	})
+}
+
+func (r *Route) Users(c *gin.Context) {
+	r.logger.Debug("hit", "route", "users")
+	users, _ := r.db.ListUsers()
+	c.HTML(http.StatusOK, "users.html", gin.H{
+		"title": "Users",
+		"users": users,
 	})
 }
 
