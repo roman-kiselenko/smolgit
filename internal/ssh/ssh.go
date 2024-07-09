@@ -43,8 +43,10 @@ func New(logger *slog.Logger, db *db.Database, clictx *cli.Context) (*SSHServer,
 				exit = -1
 			case "git-receive-pack":
 				// exit = srv.cmdRepoAction(ctx, s, cmd, AccessLevelWrite)
+				logger.Debug("git-receive-pack", "code", exit)
 				exit = -1
 			case "git-upload-pack":
+				logger.Debug("git-upload-pack", "code", exit)
 				// exit = srv.cmdRepoAction(ctx, s, cmd, AccessLevelRead)
 				exit = -1
 			default:
