@@ -30,6 +30,16 @@ func Server(version string) *cli.Command {
 		Version:     version,
 		Action:      initApp,
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "ssh_listen_host",
+				Value:   "localhost",
+				Sources: altsrc.YAML("ssh.listen_host", configs...),
+			},
+			&cli.IntFlag{
+				Name:    "ssh_listen_port",
+				Value:   3080,
+				Sources: altsrc.YAML("ssh.listen_port", configs...),
+			},
 			&cli.BoolFlag{
 				Name:    "log_color",
 				Value:   true,

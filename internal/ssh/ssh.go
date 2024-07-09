@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -15,12 +14,14 @@ import (
 
 	"smolgit/internal/db"
 
+	"github.com/urfave/cli/v3"
 	"golang.org/x/crypto/ssh"
 )
 
 // Code below partially based on https://github.com/gogs/gogs/blob/main/internal/ssh/ssh.go
 
-func Listen(logger *slog.Logger, db *db.Database, opts conf.SSHOpts, appDataPath string) {
+func Listen(logger *slog.Logger, db *db.Database, ctx *cli.Context) {
+	appDataPath := ctx.String("git_path")
 	config := &ssh.ServerConfig{
 		Config: ssh.Config{},
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
@@ -29,11 +30,11 @@ func Listen(logger *slog.Logger, db *db.Database, opts conf.SSHOpts, appDataPath
 				logger.Error("cant find pubkey", "err", err)
 				return nil, err
 			}
-			return &ssh.Permissions{Extensions: map[string]string{"key-id": pkey.ID}}, nil
+			return &ssh.Permissions{Extensions: map[string]string{"key-id": pkey}}, nil
 		},
 	}
 
-	keys, err := setupHostKeys(logger, appDataPath, opts.ServerAlgorithms)
+	keys, err := setupHostKeys(logger, ctx.String("ssh_keygen_path"), appDataPath, []string{})
 	if err != nil {
 		logger.Error("Failed to setup host keys", "err", err)
 		os.Exit(1)
@@ -43,15 +44,16 @@ func Listen(logger *slog.Logger, db *db.Database, opts conf.SSHOpts, appDataPath
 		config.AddHostKey(key)
 	}
 
-	go listen(config, opts.ListenHost, opts.ListenPort)
+	go listen(logger, config, appDataPath, ctx.String("ssh_listen_host"), int(ctx.Int("ssh_listen_port")))
 }
 
-func listen(logger *slog.Logger, config *ssh.ServerConfig, host string, port int) {
-	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", host, port))
+func listen(logger *slog.Logger, config *ssh.ServerConfig, appDataPath, host string, port int) {
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		logger.Error("Failed to start SSH server", "err", err)
 		os.Exit(1)
 	}
+	logger.Info("start ssh", "address", fmt.Sprintf("%s:%d", host, port))
 	for {
 		// Once a ServerConfig has been configured, connections can be accepted.
 		conn, err := listener.Accept()
@@ -61,7 +63,7 @@ func listen(logger *slog.Logger, config *ssh.ServerConfig, host string, port int
 		}
 
 		go func() {
-			logger.Debug("Handshaking for %s", "addr", conn.RemoteAddr())
+			logger.Debug("Handshaking for", "addr", conn.RemoteAddr())
 			sConn, chans, reqs, err := ssh.NewServerConn(conn, config)
 			if err != nil {
 				if err == io.EOF || errors.Is(err, syscall.ECONNRESET) {
@@ -74,12 +76,12 @@ func listen(logger *slog.Logger, config *ssh.ServerConfig, host string, port int
 
 			logger.Debug("Got connection", "from", sConn.RemoteAddr(), "version", sConn.ClientVersion())
 			go ssh.DiscardRequests(reqs)
-			go handleServerConn(logger, sConn.Permissions.Extensions["key-id"], chans)
+			go handleServerConn(logger, appDataPath, sConn.Permissions.Extensions["key-id"], chans)
 		}()
 	}
 }
 
-func handleServerConn(logger *slog.Logger, keyID string, chans <-chan ssh.NewChannel) {
+func handleServerConn(logger *slog.Logger, appDataPath, keyID string, chans <-chan ssh.NewChannel) {
 	for newChan := range chans {
 		if newChan.ChannelType() != "session" {
 			_ = newChan.Reject(ssh.UnknownChannelType, "unknown channel type")
@@ -114,19 +116,20 @@ func handleServerConn(logger *slog.Logger, keyID string, chans <-chan ssh.NewCha
 						continue
 					}
 
-					_, stderr, err := com.ExecCmd("env", fmt.Sprintf("%s=%s", env.Name, env.Value))
-					if err != nil {
-						logger.Warn("env", "key", err, "value", stderr)
-						return
-					}
+					// _, stderr, err := com.ExecCmd("env", fmt.Sprintf("%s=%s", env.Name, env.Value))
+					// if err != nil {
+					// 	logger.Warn("env", "key", err, "value", stderr)
+					// 	return
+					// }
 
 				case "exec":
 					cmdName := strings.TrimLeft(payload, "'()")
 					logger.Debug("Payload", "name", cmdName)
 
-					args := []string{"serv", "key-" + keyID, "--config=" + conf.CustomConf}
+					args := []string{"serv", "key-" + keyID}
+					// args := []string{"serv", "key-" + keyID, "--config=" + conf.CustomConf}
 					logger.Debug("Arguments", "args", args)
-					cmd := exec.Command(conf.AppPath(), args...)
+					cmd := exec.Command(appDataPath, args...)
 					cmd.Env = append(os.Environ(), "SSH_ORIGINAL_COMMAND="+cmdName)
 
 					stdout, err := cmd.StdoutPipe()
@@ -171,7 +174,7 @@ func handleServerConn(logger *slog.Logger, keyID string, chans <-chan ssh.NewCha
 	}
 }
 
-func setupHostKeys(logger *slog.Logger, appDataPath string, algorithms []string) ([]ssh.Signer, error) {
+func setupHostKeys(_ *slog.Logger, keygenPath, appDataPath string, algorithms []string) ([]ssh.Signer, error) {
 	dir := filepath.Join(appDataPath, "ssh")
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
@@ -181,20 +184,20 @@ func setupHostKeys(logger *slog.Logger, appDataPath string, algorithms []string)
 	var hostKeys []ssh.Signer
 	for _, algo := range algorithms {
 		keyPath := filepath.Join(dir, "gogs."+algo)
-		if !osutil.IsExist(keyPath) {
-			args := []string{
-				conf.SSH.KeygenPath,
-				"-t", algo,
-				"-f", keyPath,
-				"-m", "PEM",
-				"-N", run.Arg(""),
-			}
-			err = run.Cmd(context.Background(), args...).Run().Wait()
-			if err != nil {
-				return nil, fmt.Errorf("generate host key with args %v %w", args, err)
-			}
-			logger.Debug("New private key is generated", "keypath", keyPath)
-		}
+		// if !osutil.IsExist(keyPath) {
+		// 	args := []string{
+		// 		keygenPath,
+		// 		"-t", algo,
+		// 		"-f", keyPath,
+		// 		"-m", "PEM",
+		// 		"-N", run.Arg(""),
+		// 	}
+		// 	err = run.Cmd(context.Background(), args...).Run().Wait()
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("generate host key with args %v %w", args, err)
+		// 	}
+		// 	logger.Debug("New private key is generated", "keypath", keyPath)
+		// }
 
 		keyData, err := os.ReadFile(keyPath)
 		if err != nil {
