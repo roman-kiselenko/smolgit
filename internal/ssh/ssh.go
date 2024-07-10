@@ -107,7 +107,6 @@ func (srv *SSHServer) pkHandler(ctx ssh.Context, incomingKey ssh.PublicKey) bool
 }
 
 func (srv *SSHServer) ListenAndServe() error {
-	srv.logger.Info("starting SSH server", "addr", srv.addr)
 	srv.ssh.Addr = srv.addr
 	return srv.ssh.ListenAndServe()
 }
@@ -129,7 +128,7 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 	srv.logger.Debug("found repository", "repo", repo)
 
 	// TODO sanitize input
-	returnCode := git.RunCommand(srv.logger, "./tmp/smolgit/repositories", s, []string{cmd[0], "dumprepo.git"}, []string{})
+	returnCode := git.RunCommand(srv.logger, "/tmp/smolgit/repos", s, []string{cmd[0], "dumprepo.git"}, []string{})
 	return returnCode
 }
 

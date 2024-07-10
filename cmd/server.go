@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"time"
@@ -89,13 +90,18 @@ func Server(version string) *cli.Command {
 	}
 }
 
+// TODO move all check to PreStart
 func initApp(ctx *cli.Context) error {
 	logger := initLogger(ctx)
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(sloggin.New(logger))
 	router.Use(gin.Recovery())
+	if fileName, ok := checkConfigFiles(); ok {
+		logger.Info("found config file", "config", fileName)
+	}
 
+	logger.Info("initialize sqlite database", "db_path", ctx.String("db_path"))
 	database, err := db.New(logger, ctx)
 	if err != nil {
 		logger.Error("cant connect sqlite", "error", err)
@@ -115,13 +121,14 @@ func initApp(ctx *cli.Context) error {
 
 	addr := ctx.String("server_addr")
 
-	if fileName, ok := checkConfigFiles(); ok {
-		logger.Info("found config file", "config", fileName)
+	gitPath := ctx.String("git_path")
+	logger.Info("initialize git directory", "directory", gitPath)
+	if err := checkGitPath(logger, gitPath); err != nil {
+		logger.Error("cant create directory", "path", gitPath, "error", err)
+		return err
 	}
-	logger.Info("init sqlite database", "db_path", ctx.String("db_path"))
-	logger.Info("init git directory", "directory", ctx.String("git_path"))
-	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
 
+	logger.Info("initialize ssh server", "addr", ctx.String("ssh_addr"))
 	sshServer, err := ssh.New(logger, database, ctx)
 	if err != nil {
 		logger.Error("cant run ssh server", "error", err)
@@ -129,8 +136,11 @@ func initApp(ctx *cli.Context) error {
 	}
 
 	go func() {
+		logger.Info("starting SSH server", "addr", ctx.String("ssh_addr"))
 		_ = sshServer.ListenAndServe()
 	}()
+
+	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
 	return router.Run(addr)
 }
 
@@ -141,6 +151,22 @@ func checkConfigFiles() (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func checkGitPath(logger *slog.Logger, path string) error {
+	path += "/repos"
+	f, err := os.Stat(path)
+	if err == nil && f.IsDir() {
+		return nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(path, 0o700); err != nil {
+			return err
+		}
+		logger.Debug("directory created", "path", path)
+		return nil
+	}
+	return err
 }
 
 func initLogger(ctx *cli.Context) *slog.Logger {

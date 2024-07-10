@@ -8,7 +8,7 @@ server:
 ssh:
   addr: ":3081"
 git:
-  path: ./tmp/smolgit
+  path: /tmp/smolgit
 db:
   path: ./database.sqlite
 root:
