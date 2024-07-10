@@ -20,6 +20,7 @@ import (
 type SSHServer struct {
 	addr string
 
+	base   string
 	fs     billy.Filesystem
 	db     *db.Database
 	logger *slog.Logger
@@ -31,6 +32,7 @@ func New(logger *slog.Logger, db *db.Database, clictx *cli.Context) (*SSHServer,
 		logger: logger,
 		db:     db,
 		fs:     osfs.New(clictx.String("git_path")),
+		base:   clictx.String("git_path"),
 		addr:   clictx.String("ssh_addr"),
 	}
 
@@ -119,7 +121,7 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 
 	repoName := cmd[1]
 
-	repo, err := git.EnsureRepo(srv.fs, repoName)
+	repo, err := git.EnsureRepo(srv.logger, srv.fs, srv.base, repoName)
 	if err != nil {
 		srv.logger.Error("cant find or create repository", "err", err)
 		_, _ = io.WriteString(s.Stderr(), "Repo doesnt exist\r\n")
@@ -128,7 +130,9 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 	srv.logger.Debug("found repository", "repo", repo)
 
 	// TODO sanitize input
-	returnCode := git.RunCommand(srv.logger, "/tmp/smolgit/repos", s, []string{cmd[0], "dumprepo.git"}, []string{})
+	// Get path from user
+	srv.logger.Debug("run command", "cmd", cmd, "root", srv.fs.Root(), "path", repoName[1:])
+	returnCode := git.RunCommand(srv.logger, srv.fs.Root(), s, []string{cmd[0], repoName[1:]}, []string{})
 	return returnCode
 }
 

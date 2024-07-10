@@ -11,7 +11,7 @@ import (
 
 	"github.com/gliderlabs/ssh"
 	billy "github.com/go-git/go-billy/v5"
-	"github.com/go-git/go-billy/v5/memfs"
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/storage/filesystem"
@@ -99,30 +99,31 @@ func RunCommand(
 	return exitErr.ProcessState.ExitCode()
 }
 
-func EnsureRepo(baseFS billy.Filesystem, path string) (*git.Repository, error) {
-	var (
-		err  error
-		repo *git.Repository
-	)
+func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*git.Repository, error) {
+	info, err := baseFS.Stat(path)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		if err := baseFS.MkdirAll(path, 0o700); err != nil {
+			return nil, fmt.Errorf("cant create directory: %s err: %w", path, err)
+		}
+		logger.Debug("directory created", "path", path)
+	}
 	fs, err := baseFS.Chroot(path)
 	if err != nil {
 		return nil, fmt.Errorf("cant chroot to path: %s err: %w", path, err)
 	}
-
 	repoFS := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
-	repo, err = git.Open(repoFS, memfs.New())
-	if err != nil {
-		if errors.Is(err, git.ErrRepositoryNotExists) {
-			_, err := git.Init(repoFS, nil)
-			if err != nil {
-				return nil, fmt.Errorf("cant init git: %w", err)
-			}
+	if info == nil {
+		logger.Debug("init repo", "path", path)
+		repo, err := git.Init(repoFS, nil)
+		if err != nil {
+			return nil, fmt.Errorf("cant init git: %w", err)
 		}
+		return repo, nil
 	}
-
-	repo, err = git.Open(repoFS, memfs.New())
+	logger.Debug("open repo", "path", path)
+	repo, err := git.Open(repoFS, osfs.New(base))
 	if err != nil {
-		return repo, fmt.Errorf("cant open repo err: %w", err)
+		return nil, fmt.Errorf("cant open git: %w", err)
 	}
 
 	return repo, nil
