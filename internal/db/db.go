@@ -9,6 +9,7 @@ import (
 	"smolgit/internal/password"
 
 	"github.com/jmoiron/sqlx"
+	//nolint:revive
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/urfave/cli/v3"
 )

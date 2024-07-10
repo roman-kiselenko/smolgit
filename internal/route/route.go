@@ -2,7 +2,6 @@ package route
 
 import (
 	"embed"
-	_ "embed"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -63,7 +62,11 @@ func (r *Route) ExternalStyle(c *gin.Context) {
 	c.Header("Content-Type", "text/css")
 	data, err := styleFs.ReadFile("templates/css/terminal.min.css")
 	if err != nil {
-		panic(err)
+		r.logger.Warn("cant read css", "err", err)
+		c.HTML(http.StatusOK, "repos.html", gin.H{
+			"title": "Repo",
+		})
+		return
 	}
 	_, _ = c.Writer.Write(data)
 }

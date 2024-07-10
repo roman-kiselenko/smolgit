@@ -62,7 +62,7 @@ func Server(version string) *cli.Command {
 			},
 			&cli.StringFlag{
 				Name:    "git_path",
-				Value:   "/tmp/smolgit",
+				Value:   "./tmp/smolgit",
 				Sources: altsrc.YAML("git.path", configs...),
 			},
 			&cli.StringFlag{
@@ -126,9 +126,11 @@ func initApp(ctx *cli.Context) error {
 	if err != nil {
 		logger.Error("cant run ssh server", "error", err)
 		return err
-
 	}
-	go sshServer.ListenAndServe()
+
+	go func() {
+		_ = sshServer.ListenAndServe()
+	}()
 	return router.Run(addr)
 }
 
@@ -164,6 +166,7 @@ func initLogger(ctx *cli.Context) *slog.Logger {
 	if err := level.UnmarshalText([]byte(ctx.String("log_level"))); err != nil {
 		level.Set(slog.LevelDebug)
 	}
+	logger.Info("set loglevel", "level", level)
 
 	return logger
 }
