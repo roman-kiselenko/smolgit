@@ -57,6 +57,25 @@ func (db *Database) InsertUserKey(userID int64, key string) error {
 	return nil
 }
 
+func (db *Database) InsertRepo(userID int64, path string) error {
+	if _, err := db.NamedExec(`INSERT INTO repositories (user_id, path) VALUES (:user_id, :path)`,
+		map[string]interface{}{
+			"user_id": userID,
+			"path":    path,
+		}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *Database) RepoExist(userID int64, path string) bool {
+	var exist int
+	if err := db.Get(&exist, `SELECT 1 FROM repositories WHERE user_id = $1 AND path = $2;`, userID, path); err != nil {
+		return false
+	}
+	return exist == 1
+}
+
 func (db *Database) FindUserFromKey(key string) (model.User, error) {
 	var user model.User
 	if err := db.Get(&user, `SELECT users.id, login FROM users LEFT JOIN keys ON users.id = keys.user_id WHERE keys.key_id = $1;`, key); err != nil {

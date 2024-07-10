@@ -15,3 +15,10 @@ type Key struct {
 	KeyID     string    `db:"key_id"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+type Repository struct {
+	ID        *int64    `db:"id"`
+	UserID    int64     `db:"user_id"`
+	Path      string    `db:"path"`
+	CreatedAt time.Time `db:"created_at"`
+}

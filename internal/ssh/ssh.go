@@ -104,6 +104,7 @@ func (srv *SSHServer) pkHandler(ctx ssh.Context, incomingKey ssh.PublicKey) bool
 		srv.logger.Error("user not found", "err", err)
 		return false
 	}
+	ctx.SetValue("user_id", *user.ID)
 	srv.logger.Debug("found user", "id", *user.ID, "name", user.Login)
 	return true
 }
@@ -121,14 +122,24 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 
 	repoName := cmd[1]
 
-	repo, err := git.EnsureRepo(srv.logger, srv.fs, srv.base, repoName)
+	userID, ok := s.Context().Value("user_id").(int64)
+	if !ok || userID == 0 {
+		srv.logger.Error("cant find user")
+		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
+		return 1
+	}
+	_, err := git.EnsureRepo(srv.logger, srv.fs, srv.base, repoName)
 	if err != nil {
 		srv.logger.Error("cant find or create repository", "err", err)
 		_, _ = io.WriteString(s.Stderr(), "Repo doesnt exist\r\n")
 		return 1
 	}
-	srv.logger.Debug("found repository", "repo", repo)
-
+	if !srv.db.RepoExist(userID, repoName) {
+		if err := srv.db.InsertRepo(userID, repoName); err != nil {
+			srv.logger.Error("cant insert repo", "err", err)
+			return 1
+		}
+	}
 	// TODO sanitize input
 	// Get path from user
 	srv.logger.Debug("run command", "cmd", cmd, "root", srv.fs.Root(), "path", repoName[1:])

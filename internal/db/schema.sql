@@ -18,4 +18,3 @@ CREATE TABLE IF NOT EXISTS repositories(
     user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-CREATE UNIQUE INDEX IF NOT EXISTS repositories_path_idx ON repositories (path);
