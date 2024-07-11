@@ -96,7 +96,17 @@ func (r *Route) User(c *gin.Context) {
 		})
 		return
 	}
-	if err := r.db.InsertUser(login, password, string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(pk)))); err != nil {
+	kkey := string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(pk)))
+	user, _ := r.db.FindUserFromKey(kkey)
+	if user.ID != nil && *user.ID > 0 {
+		r.logger.Error("cant create user", "err", "duplicate ssh-key")
+		c.HTML(http.StatusOK, "500.html", gin.H{
+			"title": "Create Users",
+			"error": "Duplicate ssh key",
+		})
+		return
+	}
+	if err := r.db.InsertUser(login, password, kkey); err != nil {
 		r.logger.Error("cant create user", "err", err)
 		c.HTML(http.StatusOK, "500.html", gin.H{
 			"title": "Create Users",

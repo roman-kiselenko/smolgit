@@ -1,4 +1,6 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="terminal-alert terminal-alert-error">{{ .title }}</div>
+<div class="container">
+    <div class="alert alert-error">{{ .title }}</div>
+</div>
