@@ -1,13 +1,19 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<main>
-  <table>
+<div class="container">
+    <table>
       <caption>
           Users
       </caption>
+      <tfoot>
+        <tr>
+          <th colspan="5"><a href="/create" class="btn btn-primary">Create</a></th>
+        </tr>
+      </tfoot>
       <tbody>
-      </tbody><thead>
+      </tbody>
+      <thead>
           <tr>
               <th>name</th>
               <th>repository count</th>
@@ -24,4 +30,4 @@
         {{end}}
       </tbody>
   </table>
-</main>
+</dev>

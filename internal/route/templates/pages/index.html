@@ -1,7 +1,7 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<main>
+<div class="container">
   <table>
       <caption>
           Repositories
@@ -9,7 +9,7 @@
       <tbody>
       </tbody><thead>
           <tr>
-              <th>clone link</th>
+              <th>clone</th>
               <th>description</th>
               <th>owner</th>
               <th>last commit</th>
@@ -26,4 +26,4 @@
         {{ end }}
       </tbody>
   </table>
-</main>
+</div>

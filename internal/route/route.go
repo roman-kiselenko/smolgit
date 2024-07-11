@@ -1,6 +1,7 @@
 package route
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -9,6 +10,9 @@ import (
 	"time"
 
 	"smolgit/internal/db"
+	"smolgit/internal/ssh"
+
+	gssh "golang.org/x/crypto/ssh"
 
 	strftime "github.com/itchyny/timefmt-go"
 
@@ -34,12 +38,18 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database) (Rou
 		htmlTemplates,
 		"templates/layout.html",
 		"templates/pages/index.html",
+		"templates/pages/500.html",
+		"templates/pages/404.html",
 		"templates/pages/users.html",
+		"templates/pages/create.html",
 	)
 	if err != nil {
 		return r, err
 	}
 	ginEngine.SetHTMLTemplate(tmpl)
+	ginEngine.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": "Not Found"})
+	})
 	return r, nil
 }
 
@@ -52,11 +62,7 @@ func formatAsDate(t time.Time) string {
 }
 
 func (r *Route) Index(c *gin.Context) {
-	r.logger.Debug("hit", "route", "index")
-	repos, err := r.db.ListRepos()
-	if err != nil {
-		r.logger.Error("cant fetch repos", "err", err)
-	}
+	repos, _ := r.db.ListRepos()
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Repo",
 		"repos": repos,
@@ -64,7 +70,6 @@ func (r *Route) Index(c *gin.Context) {
 }
 
 func (r *Route) Users(c *gin.Context) {
-	r.logger.Debug("hit", "route", "users")
 	users, _ := r.db.ListUsers()
 	c.HTML(http.StatusOK, "users.html", gin.H{
 		"title": "Users",
@@ -72,13 +77,42 @@ func (r *Route) Users(c *gin.Context) {
 	})
 }
 
+func (r *Route) CreateUser(c *gin.Context) {
+	c.HTML(http.StatusOK, "create.html", gin.H{
+		"title": "Create Users",
+	})
+}
+
+func (r *Route) User(c *gin.Context) {
+	login := c.PostForm("login")
+	password := c.PostForm("password")
+	key := c.PostForm("key")
+	pk, err := ssh.Parsepk([]byte(key))
+	if err != nil {
+		r.logger.Error("cant parse key", "err", err)
+		c.HTML(http.StatusOK, "500.html", gin.H{
+			"title": "Create Users",
+			"error": "Cant parse ssh-key",
+		})
+		return
+	}
+	if err := r.db.InsertUser(login, password, string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(pk)))); err != nil {
+		r.logger.Error("cant create user", "err", err)
+		c.HTML(http.StatusOK, "500.html", gin.H{
+			"title": "Create Users",
+			"error": "Cant create user",
+		})
+		return
+	}
+	c.Redirect(http.StatusFound, "/users")
+}
+
 //go:embed templates/css
 var styleFs embed.FS
 
 func (r *Route) ExternalStyle(c *gin.Context) {
-	r.logger.Debug("hit", "route", "style")
 	c.Header("Content-Type", "text/css")
-	data, err := styleFs.ReadFile("templates/css/terminal.min.css")
+	data, err := styleFs.ReadFile("templates/css/hack.css")
 	if err != nil {
 		r.logger.Warn("cant read css", "err", err)
 		c.HTML(http.StatusOK, "repos.html", gin.H{
@@ -90,7 +124,6 @@ func (r *Route) ExternalStyle(c *gin.Context) {
 }
 
 func (r *Route) Style(c *gin.Context) {
-	r.logger.Debug("hit", "route", "style")
 	c.Header("Content-Type", "text/css")
 	data, err := styleFs.ReadFile("templates/css/style.css")
 	if err != nil {

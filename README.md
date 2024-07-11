@@ -37,7 +37,7 @@ TBD
 ## Built with
 
 - [gin](https://github.com/gin-gonic/gin)
-- [terminalcss](https://terminalcss.xyz)
+- [hack](https://hackcss.egoist.dev/)
 - [sqlite](https://www.sqlite.org/)
 
 ## Contact

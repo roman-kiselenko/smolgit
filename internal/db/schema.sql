@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS keys(
     key_id     VARCHAR(3000) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-CREATE UNIQUE INDEX IF NOT EXISTS users_key_id_idx ON keys (key_id);
+CREATE UNIQUE INDEX IF NOT EXISTS users_key_id_idx ON keys (user_id, key_id);
 CREATE TABLE IF NOT EXISTS repositories(
     id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     path        VARCHAR(350) DEFAULT '',

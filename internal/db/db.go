@@ -46,6 +46,24 @@ func New(logger *slog.Logger, clictx *cli.Context) (*Database, error) {
 	return db, nil
 }
 
+// TODO write to tx
+func (db *Database) InsertUser(login, pswd, key string) error {
+	pass, _ := password.HashPassword(pswd)
+	result, err := db.NamedExec(`INSERT INTO users (login, password) VALUES (:login, :password)`,
+		map[string]interface{}{
+			"login":    login,
+			"password": pass,
+		})
+	if err != nil {
+		return err
+	}
+	userID, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	return db.InsertUserKey(userID, key)
+}
+
 func (db *Database) InsertUserKey(userID int64, key string) error {
 	if _, err := db.NamedExec(`INSERT INTO keys (user_id, key_id) VALUES (:user_id, :key_id)`,
 		map[string]interface{}{

@@ -38,7 +38,7 @@ func New(logger *slog.Logger, db *db.Database, clictx *cli.Context) (*SSHServer,
 
 	if seedRoot(clictx) {
 		for _, k := range clictx.StringSlice("root_keys") {
-			pk, err := parsepk([]byte(k))
+			pk, err := Parsepk([]byte(k))
 			if err != nil {
 				srv.logger.Error("cant parse ssh_keys", "key", k)
 				continue
@@ -147,7 +147,7 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 	return returnCode
 }
 
-func parsepk(data []byte) (ssh.PublicKey, error) {
+func Parsepk(data []byte) (ssh.PublicKey, error) {
 	publicKey, _, _, _, err := ssh.ParseAuthorizedKey(data) //nolint:dogsled
 	return publicKey, err
 }
