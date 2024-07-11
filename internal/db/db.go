@@ -92,10 +92,59 @@ func (db *Database) FindRootUser() (model.User, error) {
 	return user, nil
 }
 
+// TODO fix query
 func (db *Database) ListUsers() ([]*model.User, error) {
 	var users []*model.User
 	if err := db.Select(&users, `SELECT * FROM users ORDER BY created_at ASC;`); err != nil {
 		return users, err
 	}
+	userIDs := []int64{}
+	for _, u := range users {
+		userIDs = append(userIDs, *u.ID)
+	}
+	var repos []*model.Repository
+	query, args, err := sqlx.In(`SELECT * FROM repositories WHERE user_id IN (?);`, userIDs)
+	if err != nil {
+		return users, err
+	}
+	if err := db.Select(&repos, db.Rebind(query), args...); err != nil {
+		return users, err
+	}
+	for _, u := range users {
+		for _, r := range repos {
+			if r.UserID == *u.ID {
+				u.Repos = append(u.Repos, r)
+			}
+		}
+	}
+
 	return users, nil
+}
+
+// TODO fix query
+func (db *Database) ListRepos() ([]*model.Repository, error) {
+	var repos []*model.Repository
+	if err := db.Select(&repos, `SELECT * FROM repositories ORDER BY created_at ASC;`); err != nil {
+		return repos, err
+	}
+	userIDs := []int64{}
+	for _, r := range repos {
+		userIDs = append(userIDs, r.UserID)
+	}
+	var users []*model.User
+	query, args, err := sqlx.In(`SELECT * FROM users WHERE id IN (?);`, userIDs)
+	if err != nil {
+		return repos, err
+	}
+	if err := db.Select(&users, db.Rebind(query), args...); err != nil {
+		return repos, err
+	}
+	for _, r := range repos {
+		for _, u := range users {
+			if r.UserID == *u.ID {
+				r.User = u
+			}
+		}
+	}
+	return repos, nil
 }

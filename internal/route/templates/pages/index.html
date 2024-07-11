@@ -6,27 +6,24 @@
       <caption>
           Repositories
       </caption>
-      <!-- <tfoot>
-      <tr>
-          <th colspan="5"><a href="https://en.wikipedia.org/wiki/Traditional_colors_of_Japan" target="_blank">Source: Wikipedia</a></th>
-      </tr>
-      </tfoot> -->
       <tbody>
       </tbody><thead>
           <tr>
-              <th>name</th>
+              <th>clone link</th>
               <th>description</th>
               <th>owner</th>
               <th>last commit</th>
           </tr>
       </thead>
       <tbody>
+        {{ range .repos }}
         <tr>
-          <td>golang</td>
-          <td>The Go programming language</td>
-          <td>me</td>
-          <td>2023-11-18 22:33</td>
+          <td><code>{{ .Path | formatAsGit }}</code></td>
+          <td>{{ .Description }}</td>
+          <td>{{ .User.Login }}</td>
+          <td>{{ .CreatedAt | formatAsDate }}</td>
         </tr>
+        {{ end }}
       </tbody>
   </table>
 </main>

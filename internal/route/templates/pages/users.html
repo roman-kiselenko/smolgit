@@ -10,6 +10,7 @@
       </tbody><thead>
           <tr>
               <th>name</th>
+              <th>repository count</th>
               <th>created at</th>
           </tr>
       </thead>
@@ -17,7 +18,8 @@
         {{range .users}}
             <tr>
             <td>{{ .Login }}</td>
-            <td>{{ .CreatedAt }}</td>
+            <td>{{ len .Repos }}</td>
+            <td>{{ .CreatedAt | formatAsDate }}</td>
             </tr>
         {{end}}
       </tbody>

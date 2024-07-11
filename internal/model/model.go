@@ -3,10 +3,11 @@ package model
 import "time"
 
 type User struct {
-	ID        *int64    `db:"id"`
-	Login     string    `db:"login"`
-	Password  string    `db:"password"`
-	CreatedAt time.Time `db:"created_at"`
+	ID        *int64        `db:"id"`
+	Login     string        `db:"login"`
+	Password  string        `db:"password"`
+	Repos     []*Repository `db:"-"`
+	CreatedAt time.Time     `db:"created_at"`
 }
 
 type Key struct {
@@ -17,8 +18,11 @@ type Key struct {
 }
 
 type Repository struct {
-	ID        *int64    `db:"id"`
-	UserID    int64     `db:"user_id"`
-	Path      string    `db:"path"`
-	CreatedAt time.Time `db:"created_at"`
+	ID          *int64    `db:"id"`
+	UserID      int64     `db:"user_id"`
+	User        *User     `db:"-"`
+	Path        string    `db:"path"`
+	Description string    `db:"description"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
