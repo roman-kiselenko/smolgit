@@ -140,7 +140,9 @@ func initApp(ctx *cli.Context) error {
 
 	go func() {
 		logger.Info("starting SSH server", "addr", ctx.String("ssh_addr"))
-		_ = sshServer.ListenAndServe()
+		if err := sshServer.ListenAndServe(); err != nil {
+			logger.Error("cant run ssh server", "error", err)
+		}
 	}()
 
 	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)

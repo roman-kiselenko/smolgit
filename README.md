@@ -1,15 +1,16 @@
 ## smolgit
 
-**smolgit** offers a minimalist interface with essential [git](https://git-scm.com/) functionalities, making it perfect for small teams or individual developers. There is no fancy javascript frontend or super duper features.
+**smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. Small memory footprint, one binary to go.
 
 ### Motivation
-**smolgit** is perfect for those who value simplicity and efficiency in their workflow. The goal is to eliminate the bloat and offer a tool that is easy to set up, use, and maintain, without sacrificing the critical capabilities that developers rely on.
+**smolgit** is perfect for those who value simplicity and efficiency in their workflow. The goal is to eliminate the bloat and offer a tool that is easy to set up, use, and maintain.
 
 ### Usage
 
-1. **git operations**: Easily perform `pull`, `push`, and `fetch` operations from the main interface.
-2. **repository visualization**: Browse the file tree, view the latest commit, and explore the commit and branch and tag lists.
-3. **file content**: See the content of non-binary files.
+1. **git operations**: Easily perform `pull`, `push`, and `fetch` operations. Create repository just by `push`ing.
+1. **repository visualization**: Browse the file tree, view the latest commit, and explore the commit and branch and tag lists.
+1. **file content**: See the content of non-binary files.
+1. **user management**: Simple user management, create users with `ssh-keys` to allow them `push\pull`
 
 
 ### Getting Started
@@ -41,6 +42,10 @@ GLOBAL OPTIONS:
    --version, -v                            print the version (default: false)
 ```
 
+#### Docker
+
+TBD
+
 ### Prerequisites
 
 - go (>= 1.22+)
@@ -54,6 +59,6 @@ GLOBAL OPTIONS:
 - [hack](https://hackcss.egoist.dev/)
 - [sqlite](https://www.sqlite.org/)
 
-## Contact
+## Contribution
 
-For questions or feedback, please open an issue or contact us at [roman.kiselenko.dev@gmail.com](roman.kiselenko.dev@gmail.com).
+Contributions are more than welcome!
