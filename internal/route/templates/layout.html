@@ -6,31 +6,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ . }}</title>
-    <link rel="stylesheet" href="css/hack.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/lit.css">
+    <link rel="stylesheet" href="/css/util.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-  <body>
-    <div class="container">
-      <div class="menu">
-        <a href="/users" class="menu-item {{ if eq . "Users" }} active {{ end }}">
-          users
-        </a>
-        <a href="/" class="menu-item {{ if eq . "Repo" }} active {{ end }}" >
-          repositories
-        </a>
-      </div>
+  <body class="c">
+    <div class="row card">
+      <b class="col info">smolgit</b>
+      <div class="col"><a href="/users" class="info">users</a></div>
+      <div class="col info"><a href="/" class="info">repositories</a></div>
     </div>
-    <!-- <div class="terminal-nav">
-        <div class="terminal-logo">
-          <div class="logo terminal-prompt"><a href="/" class="no-style">smolgit</a></div>
-        </div>
-        <nav class="terminal-menu">
-          <ul>
-            <li><a class="menu-item >Users</a></li>
-            <li><a class="menu-item {{ if eq . "Repo" }} active {{ end }}" href="/">Repositories</a></li>
-          </ul>
-        </nav>
-      </div> -->
   </body>
 </html>
 {{ end }}

@@ -1,18 +1,14 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="container">
-  <div class="header">
-    <a class="btn btn-primary btn-block btn-ghost">{{ .repo.Path }}</a>
-  </div>
-</div>
-<div class="container">
-    <table>
+<div class="c">
+    <a class="btn info">{{ .repo.Path }}</a>
+    <table class="w-100">
         <tbody>
         <tbody>
           <tr>
-            <td>{{ .repo.Path | formatAsGit }}</a></td>
-            <td>{{ .repo.CreatedAt | formatAsDate }}</td>
+            <td><samp>{{ .repo.Path | formatAsGit }}</samp></td>
+            <td><small>{{ .repo.CreatedAt | formatAsDate }}</small></td>
           </tr>
         </tbody>
     </table>

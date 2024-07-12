@@ -1,32 +1,29 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="container">
-  <div class="header">
-    <a class="btn btn-primary btn-block" href="/create">Create</a>
+<div class="c">
+  <a class="btn info" href="/create">Create</a>
+</div>
+<div class="c">
+  <table class="w-100">
+    <thead>
+        <tr>
+            <th>id</th>
+            <th>name</th>
+            <th>repository count</th>
+            <th>created at</th>
+        </tr>
+    </thead>
+    <tbody>
+      {{range .users}}
+          <tr>
+          <td>{{ .ID }}</td>
+          <td>{{ .Login }}</td>
+          <td>{{ len .Repos }}</td>
+          <td><small>{{ .CreatedAt | formatAsDate }}</small></td>
+          </tr>
+      {{end}}
+    </tbody>
+  </table>
   </div>
 </div>
-<div class="container">
-    <table>
-      <tbody>
-      </tbody>
-      <thead>
-          <tr>
-              <th>id</th>
-              <th>name</th>
-              <th>repository count</th>
-              <th>created at</th>
-          </tr>
-      </thead>
-      <tbody>
-        {{range .users}}
-            <tr>
-            <td>{{ .ID }}</td>
-            <td>{{ .Login }}</td>
-            <td>{{ len .Repos }}</td>
-            <td>{{ .CreatedAt | formatAsDate }}</td>
-            </tr>
-        {{end}}
-      </tbody>
-  </table>
-</dev>

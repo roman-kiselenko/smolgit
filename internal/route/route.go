@@ -71,8 +71,12 @@ func (r *Route) Index(c *gin.Context) {
 }
 
 func (r *Route) Repo(c *gin.Context) {
-	// path := c
-	repo, _ := r.db.FindRepoBy("/repos/bfm.git")
+	user, repoPath := c.Param("user"), c.Param("path")
+	repo, err := r.db.FindRepoBy("/" + user + "/" + repoPath)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
 	c.HTML(http.StatusOK, "repo.html", gin.H{
 		"title": "Repo",
 		"repo":  repo,
@@ -130,15 +134,20 @@ func (r *Route) User(c *gin.Context) {
 //go:embed templates/css
 var styleFs embed.FS
 
-func (r *Route) ExternalStyle(c *gin.Context) {
+func (r *Route) ExternalStyleTwo(c *gin.Context) {
 	c.Header("Content-Type", "text/css")
-	data, err := styleFs.ReadFile("templates/css/hack.css")
+	data, err := styleFs.ReadFile("templates/css/util.css")
 	if err != nil {
-		r.logger.Warn("cant read css", "err", err)
-		c.HTML(http.StatusOK, "repos.html", gin.H{
-			"title": "Repo",
-		})
-		return
+		panic(err)
+	}
+	_, _ = c.Writer.Write(data)
+}
+
+func (r *Route) ExternalStyleOne(c *gin.Context) {
+	c.Header("Content-Type", "text/css")
+	data, err := styleFs.ReadFile("templates/css/lit.css")
+	if err != nil {
+		panic(err)
 	}
 	_, _ = c.Writer.Write(data)
 }

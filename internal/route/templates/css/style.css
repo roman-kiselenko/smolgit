@@ -1,15 +1,13 @@
 body {
-    width: 100%;
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.5rem;
-    /* --global-font-size: 0.8em; */
-}
-
-th {
-  text-align: left;
-}
-
-body > .container > .header {
-  padding-top: 1em;
+    max-width: var(--w-body, 100%);
+    min-width: 320px;
+    padding: 2rem;
+    margin: 0 auto;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background-color: hsl(var(--hs-static), var(--l-highest));
+    color: hsl(var(--hs-static), var(--l-lowest));
+    font-size: var(--f-size);
+    font-family: var(--f-mono);
+    line-height: var(--f-line); 
 }

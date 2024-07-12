@@ -1,13 +1,11 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="container">
-  <div class="header">
-    <a class="btn btn-primary btn-block btn-ghost">Repositories</a>
-  </div>
+<div class="c">
+  <a class="btn info">Repositories</a>
 </div>
-<div class="container">
-  <table>
+<div class="c">
+  <table class="w-100">
       <tbody>
       </tbody><thead>
           <tr>
@@ -19,9 +17,9 @@
       <tbody>
         {{ range .repos }}
         <tr>
-          <td><a href="/repo">{{ .Path }}</a></td>
+          <td><a class="info" href="/repo{{ .Path }}">{{ .Path }}</a></td>
           <td>{{ .User.Login }}</td>
-          <td>{{ .CreatedAt | formatAsDate }}</td>
+          <td><small class="b-accent">{{ .CreatedAt | formatAsDate }}</small></td>
         </tr>
         {{ end }}
       </tbody>

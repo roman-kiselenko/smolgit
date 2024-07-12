@@ -19,3 +19,4 @@ CREATE TABLE IF NOT EXISTS repositories(
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS repositories_path_idx ON repositories (path);

@@ -1,35 +1,22 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-
-<div class="container">
-  <div class="header">
-    <a class="btn btn-primary btn-block btn-ghost">Create user</a>
-  </div>
-</div>
-<div class="container">
-<section>
+<div class="c">
   <form action="/user" method="POST">
-    <fieldset class="form-group">
-      <div class="form-group">
-        <label for="login">Login:</label>
-        <input class="form-control" id="login" name="login" type="text" required="" minlength="5" placeholder="smolgit">
-        <div class="help-block">minimum length 5</div>
-      </div>
-      <div class="form-group">
-        <label for="text">Password:</label>
-        <input class="form-control" id="password" name="password" type="password" required="" minlength="5" placeholder="password">
-        <div class="help-block">minimum length 5</div>
-      </div>
-      <div class="form-group">
-        <label for="textarea">SSH Pub Key:</label>
-        <textarea class="form-control" id="textarea" cols="30" rows="10" name="key" required=""></textarea>
-        <div class="help-block">required</div>
-      </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-ghost" type="submit" role="button" name="submit" id="submit" placeholder="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ....">Submit</button>
-      </div>
-    </fieldset>
+    <div class="row">
+        <div class="6 col">
+          Login
+          <input class="card w-100" id="login" name="login" type="text" required="" minlength="5" placeholder="smolgit">
+        </div>
+        <div class="6 col">
+          Password
+          <input class="card w-100" id="password" name="password" type="password" required="" minlength="5" placeholder="password">
+        </div>
+    </div>
+    <div class="row">
+        SSH Key
+        <textarea class="card w-100" name="key" placeholder="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ...."></textarea>
+        <button class="btn info">Submit</button>
+    </div>
   </form>
-</section>
 </div>
