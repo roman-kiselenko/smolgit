@@ -11,7 +11,7 @@
       <tbody>
       </tbody><thead>
           <tr>
-              <th>clone</th>
+              <th>name</th>
               <th>owner</th>
               <th>created at</th>
           </tr>
@@ -19,7 +19,7 @@
       <tbody>
         {{ range .repos }}
         <tr>
-          <td><code>{{ .Path | formatAsGit }}</code></td>
+          <td><a href="/repo">{{ .Path }}</a></td>
           <td>{{ .User.Login }}</td>
           <td>{{ .CreatedAt | formatAsDate }}</td>
         </tr>

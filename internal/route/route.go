@@ -40,6 +40,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database) (Rou
 		"templates/pages/index.html",
 		"templates/pages/500.html",
 		"templates/pages/404.html",
+		"templates/pages/repo.html",
 		"templates/pages/users.html",
 		"templates/pages/create.html",
 	)
@@ -66,6 +67,15 @@ func (r *Route) Index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Repo",
 		"repos": repos,
+	})
+}
+
+func (r *Route) Repo(c *gin.Context) {
+	// path := c
+	repo, _ := r.db.FindRepoBy("/repos/bfm.git")
+	c.HTML(http.StatusOK, "repo.html", gin.H{
+		"title": "Repo",
+		"repo":  repo,
 	})
 }
 

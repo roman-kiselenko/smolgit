@@ -116,6 +116,7 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/", r.Index)
 	router.GET("/css/hack.css", r.ExternalStyle)
 	router.GET("/css/style.css", r.Style)
+	router.GET("/repo", r.Repo)
 	router.POST("/user", r.User)
 	router.GET("/users", r.Users)
 	router.GET("/create", r.CreateUser)

@@ -110,6 +110,14 @@ func (db *Database) FindRootUser() (model.User, error) {
 	return user, nil
 }
 
+func (db *Database) FindRepoBy(path string) (model.Repository, error) {
+	var repo model.Repository
+	if err := db.Get(&repo, `SELECT * FROM repositories WHERE path = $1;`, path); err != nil {
+		return repo, err
+	}
+	return repo, nil
+}
+
 // TODO fix query
 func (db *Database) ListUsers() ([]*model.User, error) {
 	var users []*model.User
