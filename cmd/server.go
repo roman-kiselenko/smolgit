@@ -101,6 +101,7 @@ func initApp(ctx *cli.Context) error {
 		logger.Info("found config file", "config", fileName)
 	}
 
+	logger.Info("version", "version", ctx.Command.Version)
 	logger.Info("initialize sqlite database", "db_path", ctx.String("db_path"))
 	database, err := db.New(logger, ctx)
 	if err != nil {
