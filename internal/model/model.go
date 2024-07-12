@@ -18,11 +18,10 @@ type Key struct {
 }
 
 type Repository struct {
-	ID          *int64    `db:"id"`
-	UserID      int64     `db:"user_id"`
-	User        *User     `db:"-"`
-	Path        string    `db:"path"`
-	Description string    `db:"description"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID        *int64    `db:"id"`
+	UserID    int64     `db:"user_id"`
+	User      *User     `db:"-"`
+	Path      string    `db:"path"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }

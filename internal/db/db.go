@@ -113,7 +113,7 @@ func (db *Database) FindRootUser() (model.User, error) {
 // TODO fix query
 func (db *Database) ListUsers() ([]*model.User, error) {
 	var users []*model.User
-	if err := db.Select(&users, `SELECT * FROM users ORDER BY created_at ASC;`); err != nil {
+	if err := db.Select(&users, `SELECT * FROM users ORDER BY created_at DESC;`); err != nil {
 		return users, err
 	}
 	userIDs := []int64{}

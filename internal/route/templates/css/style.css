@@ -1,9 +1,15 @@
 body {
     width: 100%;
     margin: 0;
-    --global-font-size: 0.8em;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    /* --global-font-size: 0.8em; */
 }
 
 th {
   text-align: left;
+}
+
+body > .container > .header {
+  padding-top: 1em;
 }

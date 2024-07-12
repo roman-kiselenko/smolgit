@@ -15,7 +15,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_key_id_idx ON keys (user_id, key_id);
 CREATE TABLE IF NOT EXISTS repositories(
     id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     path        VARCHAR(350) DEFAULT '',
-    description VARCHAR(350) DEFAULT '',
     user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP

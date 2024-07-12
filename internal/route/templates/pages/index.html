@@ -2,24 +2,24 @@
 {{ template "layout" $title }}
 
 <div class="container">
+  <div class="header">
+    <a class="btn btn-primary btn-block btn-ghost">Repositories</a>
+  </div>
+</div>
+<div class="container">
   <table>
-      <caption>
-          Repositories
-      </caption>
       <tbody>
       </tbody><thead>
           <tr>
               <th>clone</th>
-              <th>description</th>
               <th>owner</th>
-              <th>last commit</th>
+              <th>created at</th>
           </tr>
       </thead>
       <tbody>
         {{ range .repos }}
         <tr>
           <td><code>{{ .Path | formatAsGit }}</code></td>
-          <td>{{ .Description }}</td>
           <td>{{ .User.Login }}</td>
           <td>{{ .CreatedAt | formatAsDate }}</td>
         </tr>

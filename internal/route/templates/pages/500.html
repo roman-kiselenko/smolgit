@@ -1,6 +1,8 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="container" style="padding-top: 1em">
-    <div class="alert alert-error">{{ .error }}</div>
+<div class="container">
+  <div class="header">
+    <a class="btn btn-error btn-block btn-ghost">{{ .error }}</a>
+  </div>
 </div>
