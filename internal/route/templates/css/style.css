@@ -1,13 +1,9 @@
-body {
-    max-width: var(--w-body, 100%);
-    min-width: 320px;
-    padding: 2rem;
-    margin: 0 auto;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    background-color: hsl(var(--hs-static), var(--l-highest));
-    color: hsl(var(--hs-static), var(--l-lowest));
-    font-size: var(--f-size);
-    font-family: var(--f-mono);
-    line-height: var(--f-line); 
-}
+:root {
+    --pico-border-radius: 1rem;
+    --pico-typography-spacing-vertical: 1.5rem;
+    --pico-form-element-spacing-vertical: 1rem;
+    --pico-form-element-spacing-horizontal: 1.25rem;
+  }
+  button {
+    --pico-font-weight: 400;
+  }

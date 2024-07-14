@@ -1,22 +1,17 @@
 {{ $title := .title }}
 {{ template "layout" $title }}
 
-<div class="c">
+<div class="container">
   <form action="/user" method="POST">
-    <div class="row">
-        <div class="6 col">
-          Login
-          <input class="card w-100" id="login" name="login" type="text" required="" minlength="5" placeholder="smolgit">
-        </div>
-        <div class="6 col">
-          Password
-          <input class="card w-100" id="password" name="password" type="password" required="" minlength="5" placeholder="password">
-        </div>
-    </div>
-    <div class="row">
-        SSH Key
-        <textarea class="card w-100" name="key" placeholder="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ...."></textarea>
-        <button class="btn info">Submit</button>
-    </div>
+    <fieldset class="grid">
+        <input id="login" name="login" type="text" required="" minlength="5" placeholder="login">
+        <input id="password" name="password" type="password" required="" minlength="5" placeholder="password">
+      </fieldset>
+    <fieldset class="grid">
+        <textarea name="key" placeholder="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ...."></textarea>
+    </fieldset>
+    <fieldset class="grid">
+       <button class="btn secondary">Submit</button>
+    </fieldset>
   </form>
 </div>

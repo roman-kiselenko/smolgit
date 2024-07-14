@@ -4,18 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark" />
     <title>{{ . }}</title>
-    <link rel="stylesheet" href="/css/lit.css">
-    <link rel="stylesheet" href="/css/util.css">
+    <link rel="stylesheet" href="/css/pico.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
-  <body class="c">
-    <div class="row card">
-      <b class="col info">smolgit</b>
-      <div class="col"><a href="/users" class="info">users</a></div>
-      <div class="col info"><a href="/" class="info">repositories</a></div>
-    </div>
+  <body>
+    <header class="container">
+      <nav>
+        <ul>
+          <li><strong>smolgit</strong></li>
+        </ul>
+        <ul>
+          <li>
+            <a href="/create">
+              <button class="btn secondary">New user</button>
+            </a>
+          </li>
+          <li><a class="" href="/users">Users</a></li>
+          <li><a class="" href="/">Repositories</a></li>
+        </ul>
+      </nav>
+    </header>
   </body>
 </html>
 {{ end }}

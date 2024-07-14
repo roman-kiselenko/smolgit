@@ -134,18 +134,9 @@ func (r *Route) User(c *gin.Context) {
 //go:embed templates/css
 var styleFs embed.FS
 
-func (r *Route) ExternalStyleTwo(c *gin.Context) {
+func (r *Route) ExternalStyle(c *gin.Context) {
 	c.Header("Content-Type", "text/css")
-	data, err := styleFs.ReadFile("templates/css/util.css")
-	if err != nil {
-		panic(err)
-	}
-	_, _ = c.Writer.Write(data)
-}
-
-func (r *Route) ExternalStyleOne(c *gin.Context) {
-	c.Header("Content-Type", "text/css")
-	data, err := styleFs.ReadFile("templates/css/lit.css")
+	data, err := styleFs.ReadFile("templates/css/pico.min.css")
 	if err != nil {
 		panic(err)
 	}

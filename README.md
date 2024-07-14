@@ -56,7 +56,7 @@ TBD
 ## Built with
 
 - [gin](https://github.com/gin-gonic/gin)
-- [hack](https://hackcss.egoist.dev/)
+- [pico](https://picocss.com/docs)
 - [sqlite](https://www.sqlite.org/)
 
 ## Contribution
