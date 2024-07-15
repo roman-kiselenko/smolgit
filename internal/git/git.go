@@ -128,3 +128,23 @@ func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string)
 
 	return repo, nil
 }
+
+func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*git.Repository, error) {
+	_, err := baseFS.Stat(path)
+	if err != nil {
+		logger.Debug("cant find path", "path", path, "err", err)
+		return nil, fmt.Errorf("cant find path %w %s", err, path)
+	}
+	fs, err := baseFS.Chroot(path)
+	if err != nil {
+		return nil, fmt.Errorf("cant chroot to path: %s err: %w", path, err)
+	}
+	repoFS := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
+	logger.Debug("open repo", "path", path)
+	repo, err := git.Open(repoFS, osfs.New(base))
+	if err != nil {
+		return nil, fmt.Errorf("cant open git: %w", err)
+	}
+
+	return repo, nil
+}

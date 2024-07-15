@@ -108,7 +108,9 @@ func initApp(ctx *cli.Context) error {
 		logger.Error("cant connect sqlite", "error", err)
 		return err
 	}
-	r, err := route.New(logger, router, database)
+	gitPath := ctx.String("git_path")
+
+	r, err := route.New(logger, router, database, gitPath)
 	if err != nil {
 		logger.Error("cant create routes", "error", err)
 		return err
@@ -118,13 +120,13 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/css/pico.min.css", r.ExternalStyle)
 	router.GET("/css/style.css", r.Style)
 	router.GET("/repo/:user/:path", r.Repo)
+	router.GET("/repo/files/:user/:path", r.RepoFiles)
 	router.POST("/user", r.User)
 	router.GET("/users", r.Users)
 	router.GET("/create", r.CreateUser)
 
 	addr := ctx.String("server_addr")
 
-	gitPath := ctx.String("git_path")
 	logger.Info("initialize git directory", "directory", gitPath)
 	if err := checkGitPath(logger, gitPath); err != nil {
 		logger.Error("cant create directory", "path", gitPath, "error", err)

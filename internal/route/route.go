@@ -10,10 +10,15 @@ import (
 	"time"
 
 	"smolgit/internal/db"
+	"smolgit/internal/git"
 	"smolgit/internal/ssh"
 
 	gssh "golang.org/x/crypto/ssh"
 
+	"github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/osfs"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	strftime "github.com/itchyny/timefmt-go"
 
 	"github.com/gin-gonic/gin"
@@ -23,13 +28,21 @@ type Route struct {
 	repoLinkBase string
 	db           *db.Database
 	logger       *slog.Logger
+	base         string
+	fs           billy.Filesystem
 }
 
 //go:embed templates
 var htmlTemplates embed.FS
 
-func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database) (Route, error) {
-	r := Route{repoLinkBase: "git@my-git-server.lan", db: database, logger: logger}
+func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base string) (Route, error) {
+	r := Route{
+		repoLinkBase: "git@my-git-server.lan",
+		db:           database,
+		logger:       logger,
+		base:         base,
+		fs:           osfs.New(base),
+	}
 	temp := template.New("").Funcs(template.FuncMap{
 		"formatAsDate": formatAsDate,
 		"formatAsGit":  r.formatAsGit,
@@ -70,16 +83,95 @@ func (r *Route) Index(c *gin.Context) {
 	})
 }
 
-func (r *Route) Repo(c *gin.Context) {
+func (r *Route) RepoFiles(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
-	repo, err := r.db.FindRepoBy("/" + user + "/" + repoPath)
+	fullPath := "/" + user + "/" + repoPath
+	repo, err := r.db.FindRepoBy(fullPath)
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
 		return
 	}
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	if err != nil {
+		r.logger.Error("cant find repository", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
+	// TODO consider Until option
+	ct, err := gitRepo.Log(&gogit.LogOptions{})
+	if err != nil {
+		r.logger.Error("go git", "err", err)
+	}
+	type commit struct {
+		Hash    string
+		Message string
+		Author  string
+		Date    string
+	}
+	commits := []commit{}
+	if err := ct.ForEach(func(cmt *object.Commit) error {
+		commits = append(commits, commit{
+			Hash:    cmt.Hash.String()[0:8],
+			Message: cmt.Message,
+			Author:  cmt.Author.Name,
+			Date:    formatAsDate(cmt.Author.When),
+		})
+		return nil
+	}); err != nil {
+		r.logger.Error("git repo error", "git", ct)
+	}
+	defer ct.Close()
+
 	c.HTML(http.StatusOK, "repo.html", gin.H{
-		"title": "Repo",
-		"repo":  repo,
+		"title":   "Repo",
+		"repo":    repo,
+		"commits": commits,
+	})
+}
+
+func (r *Route) Repo(c *gin.Context) {
+	user, repoPath := c.Param("user"), c.Param("path")
+	fullPath := "/" + user + "/" + repoPath
+	repo, err := r.db.FindRepoBy(fullPath)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	if err != nil {
+		r.logger.Error("cant find repository", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
+	// TODO consider Until option
+	ct, err := gitRepo.Log(&gogit.LogOptions{})
+	if err != nil {
+		r.logger.Error("go git", "err", err)
+	}
+	type commit struct {
+		Hash    string
+		Message string
+		Author  string
+		Date    string
+	}
+	commits := []commit{}
+	if err := ct.ForEach(func(cmt *object.Commit) error {
+		commits = append(commits, commit{
+			Hash:    cmt.Hash.String()[0:8],
+			Message: cmt.Message,
+			Author:  cmt.Author.Name,
+			Date:    formatAsDate(cmt.Author.When),
+		})
+		return nil
+	}); err != nil {
+		r.logger.Error("git repo error", "git", ct)
+	}
+	defer ct.Close()
+
+	c.HTML(http.StatusOK, "repo.html", gin.H{
+		"title":   "Repo",
+		"repo":    repo,
+		"commits": commits,
 	})
 }
 

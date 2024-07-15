@@ -2,13 +2,36 @@
 {{ template "layout" $title }}
 
 <div class="container">
-    <table>
-        <tbody>
-        <tbody>
+  <div class="grid repository-header">
+    <div><samp>{{ .repo.Path | formatAsGit }}</samp></div>
+    <div><a href="#">log</a></div>
+    <div><a href="/repo/files{{ .repo.Path }}">files</a></div>
+    <div><a href="#">refs</a></div>
+  </div>
+</div>
+<div class="container"><hr></div>
+<div class="container">
+  <table>
+      <tbody>
+      </tbody>
+      <thead>
           <tr>
-            <td><samp>{{ .repo.Path | formatAsGit }}</samp></td>
-            <td><small>{{ .repo.CreatedAt | formatAsDate }}</small></td>
+              <th>date</th>
+              <th>message</th>
+              <th>hash</th>
+              <th>author</th>
           </tr>
-        </tbody>
-    </table>
+      </thead>
+      <tbody>
+        {{ range .commits }}
+        <tr>
+          <td><small>{{ .Date }}</small></td>
+          <td>{{ .Message }}</td>
+          <td><samp>{{ .Hash }}</samp></td>
+          <td><small>{{ .Author }}</small></td>
+        </tr>
+        {{ end }}
+      </tbody>
+  </table>
+
 </div>
