@@ -7,15 +7,21 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/gliderlabs/ssh"
 	billy "github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/storage/filesystem"
 )
+
+type Repo struct {
+	*git.Repository
+}
 
 func RunCommand(
 	logger *slog.Logger,
@@ -99,7 +105,7 @@ func RunCommand(
 	return exitErr.ProcessState.ExitCode()
 }
 
-func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*git.Repository, error) {
+func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*Repo, error) {
 	info, err := baseFS.Stat(path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		if err := baseFS.MkdirAll(path, 0o700); err != nil {
@@ -118,7 +124,7 @@ func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string)
 		if err != nil {
 			return nil, fmt.Errorf("cant init git: %w", err)
 		}
-		return repo, nil
+		return &Repo{repo}, nil
 	}
 	logger.Debug("open repo", "path", path)
 	repo, err := git.Open(repoFS, osfs.New(base))
@@ -126,10 +132,10 @@ func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string)
 		return nil, fmt.Errorf("cant open git: %w", err)
 	}
 
-	return repo, nil
+	return &Repo{repo}, nil
 }
 
-func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*git.Repository, error) {
+func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*Repo, error) {
 	_, err := baseFS.Stat(path)
 	if err != nil {
 		logger.Debug("cant find path", "path", path, "err", err)
@@ -146,5 +152,51 @@ func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (
 		return nil, fmt.Errorf("cant open git: %w", err)
 	}
 
-	return repo, nil
+	return &Repo{repo}, nil
+}
+
+func (r *Repo) GetTags(clean bool) ([]string, error) {
+	ti, err := r.Tags()
+	if err != nil {
+		return []string{}, err
+	}
+	tags := []string{}
+	if err := ti.ForEach(func(tag *plumbing.Reference) error {
+		tags = append(tags, tag.Name().String())
+		return nil
+	}); err != nil {
+		return []string{}, err
+	}
+	defer ti.Close()
+	if clean {
+		cleaned := []string{}
+		for _, t := range tags {
+			cleaned = append(cleaned, strings.TrimPrefix(t, "refs/tags/"))
+		}
+		return cleaned, nil
+	}
+	return tags, nil
+}
+
+func (r *Repo) GetBranches(clean bool) ([]string, error) {
+	bi, err := r.Branches()
+	if err != nil {
+		return []string{}, err
+	}
+	refs := []string{}
+	if err := bi.ForEach(func(ref *plumbing.Reference) error {
+		refs = append(refs, ref.Name().String())
+		return nil
+	}); err != nil {
+		return []string{}, err
+	}
+	defer bi.Close()
+	if clean {
+		cleaned := []string{}
+		for _, t := range refs {
+			cleaned = append(cleaned, strings.TrimPrefix(t, "refs/heads/"))
+		}
+		return cleaned, nil
+	}
+	return refs, nil
 }

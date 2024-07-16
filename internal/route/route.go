@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	"smolgit/internal/db"
@@ -19,7 +20,6 @@ import (
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	strftime "github.com/itchyny/timefmt-go"
 
@@ -48,6 +48,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base
 	temp := template.New("").Funcs(template.FuncMap{
 		"formatAsDate": formatAsDate,
 		"formatAsGit":  r.formatAsGit,
+		"formatPath":   formatPath,
 	})
 	tmpl, err := temp.ParseFS(
 		htmlTemplates,
@@ -69,12 +70,25 @@ func (r *Route) formatAsGit(path string) string {
 	return fmt.Sprintf("ssh://%s%s", r.repoLinkBase, path)
 }
 
+func formatPath(path string) string {
+	chunks := strings.Split(path, "/")
+	return strings.TrimSuffix(chunks[1], ".git")
+}
+
 func formatAsDate(t time.Time) string {
 	return strftime.Format(t, "%Y/%m/%d %H:%M:%S")
 }
 
 func (r *Route) Index(c *gin.Context) {
 	repos, _ := r.db.ListRepos()
+	for _, repo := range repos {
+		gitRepo, _ := git.OpenRepo(r.logger, r.fs, r.base, repo.Path)
+		tags, _ := gitRepo.GetTags(true)
+		repo.Tags = tags
+		refs, _ := gitRepo.GetBranches(true)
+		repo.Refs = refs
+	}
+
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Repo",
 		"repos": repos,
@@ -95,31 +109,18 @@ func (r *Route) Refs(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
 		return
 	}
-	ti, err := gitRepo.Tags()
+	tags, err := gitRepo.GetTags(true)
 	if err != nil {
-		r.logger.Error("go git", "err", err)
+		r.logger.Error("cant get tags", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
 	}
-	tags := []string{}
-	if err := ti.ForEach(func(tag *plumbing.Reference) error {
-		tags = append(tags, tag.Name().String())
-		return nil
-	}); err != nil {
-		r.logger.Error("git repo error", "git", ti)
-	}
-	defer ti.Close()
-	bi, err := gitRepo.Branches()
+	refs, err := gitRepo.GetBranches(true)
 	if err != nil {
-		r.logger.Error("go git", "err", err)
+		r.logger.Error("cant get branches", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
 	}
-	refs := []string{}
-	if err := bi.ForEach(func(ref *plumbing.Reference) error {
-		refs = append(refs, ref.Name().String())
-		return nil
-	}); err != nil {
-		r.logger.Error("git repo error", "git", bi)
-	}
-	defer bi.Close()
-
 	c.HTML(http.StatusOK, "refs.html", gin.H{
 		"title": "Refs",
 		"repo":  repo,

@@ -22,6 +22,8 @@ type Repository struct {
 	UserID    int64     `db:"user_id"`
 	User      *User     `db:"-"`
 	Path      string    `db:"path"`
+	Refs      []string  `db:"-"`
+	Tags      []string  `db:"-"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }

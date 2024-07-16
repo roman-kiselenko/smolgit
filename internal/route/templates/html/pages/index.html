@@ -15,14 +15,30 @@
           <tr>
               <th>Name</th>
               <th>Owner</th>
+              <th>Branches</th>
+              <th>Tags</th>
               <th>Created</th>
           </tr>
       </thead>
       <tbody>
         {{ range .repos }}
         <tr>
-          <td><a class="info" href="/repo/log{{ .Path }}">{{ .Path }}</a></td>
+          <td><a class="info" href="/repo/log{{ .Path }}">{{ .Path | formatPath }}</a></td>
           <td>{{ .User.Login }}</td>
+          <td>
+            {{ range .Refs }}
+              <small><kbd>{{ . }}</kbd></small><br>
+            {{ end }}
+          </td>
+          {{ if not .Tags }}
+            <td><small>empty</small></td>
+          {{ else }}
+            <td>
+              {{ range .Tags }}
+                <small><kbd>{{ . }}</kbd></small><br>
+              {{ end }}
+            </td>
+          {{ end }}
           <td><small class="b-accent">{{ .CreatedAt | formatAsDate }}</small></td>
         </tr>
         {{ end }}
