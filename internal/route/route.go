@@ -72,7 +72,7 @@ func (r *Route) formatAsGit(path string) string {
 
 func formatPath(path string) string {
 	chunks := strings.Split(path, "/")
-	return strings.TrimSuffix(chunks[1], ".git")
+	return strings.TrimSuffix(chunks[2], ".git")
 }
 
 func formatAsDate(t time.Time) string {
