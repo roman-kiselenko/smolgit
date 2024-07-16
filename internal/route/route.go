@@ -37,9 +37,9 @@ type Route struct {
 //go:embed templates
 var htmlTemplates embed.FS
 
-func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base string) (Route, error) {
+func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base, gitBase string) (Route, error) {
 	r := Route{
-		repoLinkBase: "git@my-git-server.lan",
+		repoLinkBase: gitBase,
 		db:           database,
 		logger:       logger,
 		base:         base,

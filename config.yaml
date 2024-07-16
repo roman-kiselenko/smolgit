@@ -9,6 +9,7 @@ ssh:
   addr: ":3081"
 git:
   path: /tmp/smolgit
+  base: "git@my-git-server.lan"
 db:
   path: ./database.sqlite
 root:

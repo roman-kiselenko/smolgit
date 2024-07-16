@@ -1,5 +1,4 @@
 bin/
 tmp/
-.dockerignore
 database.sqlite
 .DS_Store
