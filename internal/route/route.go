@@ -19,6 +19,7 @@ import (
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	strftime "github.com/itchyny/timefmt-go"
 
@@ -58,6 +59,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base
 		"templates/pages/users.html",
 		"templates/pages/create.html",
 		"templates/pages/files.html",
+		"templates/pages/refs.html",
 	)
 	if err != nil {
 		return r, err
@@ -82,6 +84,41 @@ func (r *Route) Index(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title": "Repo",
 		"repos": repos,
+	})
+}
+
+func (r *Route) RepoRefs(c *gin.Context) {
+	user, repoPath := c.Param("user"), c.Param("path")
+	fullPath := "/" + user + "/" + repoPath
+	repo, err := r.db.FindRepoBy(fullPath)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	if err != nil {
+		r.logger.Error("cant find repository", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
+		return
+	}
+	// TODO consider Until option
+	bi, err := gitRepo.Branches()
+	if err != nil {
+		r.logger.Error("go git", "err", err)
+	}
+	refs := []string{}
+	if err := bi.ForEach(func(ref *plumbing.Reference) error {
+		refs = append(refs, ref.Name().String())
+		return nil
+	}); err != nil {
+		r.logger.Error("git repo error", "git", bi)
+	}
+	defer bi.Close()
+
+	c.HTML(http.StatusOK, "refs.html", gin.H{
+		"title": "Refs",
+		"repo":  repo,
+		"refs":  sort.StringSlice(refs),
 	})
 }
 

@@ -121,6 +121,7 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/css/style.css", r.Style)
 	router.GET("/repo/:user/:path", r.Repo)
 	router.GET("/repo/files/:user/:path", r.RepoFiles)
+	router.GET("/repo/refs/:user/:path", r.RepoRefs)
 	router.POST("/user", r.User)
 	router.GET("/users", r.Users)
 	router.GET("/create", r.CreateUser)

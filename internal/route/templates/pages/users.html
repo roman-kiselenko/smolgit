@@ -5,16 +5,14 @@
   <table>
     <thead>
         <tr>
-            <th>id</th>
-            <th>name</th>
-            <th>repository count</th>
-            <th>created at</th>
+            <th>Name</th>
+            <th>Repositories</th>
+            <th>Created at</th>
         </tr>
     </thead>
     <tbody>
       {{range .users}}
           <tr>
-          <td>{{ .ID }}</td>
           <td>{{ .Login }}</td>
           <td>{{ len .Repos }}</td>
           <td><small>{{ .CreatedAt | formatAsDate }}</small></td>
