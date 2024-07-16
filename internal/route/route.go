@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"sort"
 	"time"
 
 	"smolgit/internal/db"
@@ -56,6 +57,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base
 		"templates/pages/repo.html",
 		"templates/pages/users.html",
 		"templates/pages/create.html",
+		"templates/pages/files.html",
 	)
 	if err != nil {
 		return r, err
@@ -98,34 +100,37 @@ func (r *Route) RepoFiles(c *gin.Context) {
 		return
 	}
 	// TODO consider Until option
-	ct, err := gitRepo.Log(&gogit.LogOptions{})
+	ci, err := gitRepo.Log(&gogit.LogOptions{})
 	if err != nil {
 		r.logger.Error("go git", "err", err)
 	}
-	type commit struct {
-		Hash    string
-		Message string
-		Author  string
-		Date    string
-	}
-	commits := []commit{}
-	if err := ct.ForEach(func(cmt *object.Commit) error {
-		commits = append(commits, commit{
-			Hash:    cmt.Hash.String()[0:8],
-			Message: cmt.Message,
-			Author:  cmt.Author.Name,
-			Date:    formatAsDate(cmt.Author.When),
-		})
+	files := []string{}
+	count := 0
+	if err := ci.ForEach(func(cmt *object.Commit) error {
+		if count == 1 {
+			return nil
+		}
+		fi, err := cmt.Files()
+		if err != nil {
+			return err
+		}
+		count++
+		if err := fi.ForEach(func(file *object.File) error {
+			files = append(files, file.Name)
+			return nil
+		}); err != nil {
+			return err
+		}
 		return nil
 	}); err != nil {
-		r.logger.Error("git repo error", "git", ct)
+		r.logger.Error("git repo error", "git", ci)
 	}
-	defer ct.Close()
+	defer ci.Close()
 
-	c.HTML(http.StatusOK, "repo.html", gin.H{
-		"title":   "Repo",
-		"repo":    repo,
-		"commits": commits,
+	c.HTML(http.StatusOK, "files.html", gin.H{
+		"title": "Files",
+		"repo":  repo,
+		"files": sort.StringSlice(files),
 	})
 }
 

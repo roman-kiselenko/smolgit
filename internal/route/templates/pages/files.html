@@ -16,19 +16,13 @@
       </tbody>
       <thead>
           <tr>
-              <th>date</th>
-              <th>message</th>
-              <th>hash</th>
-              <th>author</th>
+              <th>name</th>
           </tr>
       </thead>
       <tbody>
-        {{ range .commits }}
+        {{ range .files }}
         <tr>
-          <td><small>{{ .Date }}</small></td>
-          <td>{{ .Message }}</td>
-          <td><samp>{{ .Hash }}</samp></td>
-          <td><small>{{ .Author }}</small></td>
+          <td><small>{{ . }}</small></td>
         </tr>
         {{ end }}
       </tbody>

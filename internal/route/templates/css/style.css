@@ -4,16 +4,15 @@
     --pico-typography-spacing-vertical: 1.5rem;
     --pico-form-element-spacing-vertical: 1rem;
     --pico-form-element-spacing-horizontal: 1.25rem;
-  }
-  button {
-    --pico-font-weight: 400;
-  }
+}
+button {
+  --pico-font-weight: 400;
+}
 
 .repository-header {
-  grid-column-start: 1;
-  grid-column-end:   4;
-  /* grid-template-columns: 2fr 1fr 1fr 1fr; */
+  grid-template-columns: 2fr 1fr 1fr 1fr;
 }
+
 /* :root {
   --pico-font-family-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --pico-font-family-sans-serif: system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--pico-font-family-emoji);
