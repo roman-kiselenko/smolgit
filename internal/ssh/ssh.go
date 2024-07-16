@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"log/slog"
+	"strings"
 
 	"smolgit/internal/db"
 	"smolgit/internal/git"
@@ -105,6 +106,7 @@ func (srv *SSHServer) pkHandler(ctx ssh.Context, incomingKey ssh.PublicKey) bool
 		return false
 	}
 	ctx.SetValue("user_id", *user.ID)
+	ctx.SetValue("user_name", user.Login)
 	srv.logger.Debug("found user", "id", *user.ID, "name", user.Login)
 	return true
 }
@@ -122,9 +124,21 @@ func (srv *SSHServer) cmdRepo(s ssh.Session, cmd []string) int {
 
 	repoName := cmd[1]
 
+	// TODO dry
 	userID, ok := s.Context().Value("user_id").(int64)
 	if !ok || userID == 0 {
-		srv.logger.Error("cant find user")
+		srv.logger.Error("cant find user with", "id", userID)
+		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
+		return 1
+	}
+	userLogin, ok := s.Context().Value("user_name").(string)
+	if !ok || userLogin == "" {
+		srv.logger.Error("cant find user with", "login", userLogin)
+		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
+		return 1
+	}
+	if !strings.HasPrefix(repoName[1:], userLogin) {
+		srv.logger.Error("wrong repo prefix", "repoName", repoName, "login", userLogin)
 		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
 		return 1
 	}

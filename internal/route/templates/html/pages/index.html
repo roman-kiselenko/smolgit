@@ -2,6 +2,13 @@
 {{ template "layout" $title }}
 
 <div class="container">
+  <div class="grid">
+      <a href="/create/repo">
+        <button class="btn secondary">New repo</button>
+      </a>
+  </div>
+</div>
+<div class="container">
   <table>
       <tbody>
       </tbody><thead>
@@ -14,7 +21,7 @@
       <tbody>
         {{ range .repos }}
         <tr>
-          <td><a class="info" href="/repo{{ .Path }}">{{ .Path }}</a></td>
+          <td><a class="info" href="/repo/log{{ .Path }}">{{ .Path }}</a></td>
           <td>{{ .User.Login }}</td>
           <td><small class="b-accent">{{ .CreatedAt | formatAsDate }}</small></td>
         </tr>

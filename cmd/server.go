@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"log/slog"
 	"os"
 	"time"
@@ -133,20 +132,16 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/", r.Index)
 	router.GET("/css/pico.min.css", r.ExternalStyle)
 	router.GET("/css/style.css", r.Style)
-	router.GET("/repo/:user/:path", r.Repo)
-	router.GET("/repo/files/:user/:path", r.RepoFiles)
-	router.GET("/repo/refs/:user/:path", r.RepoRefs)
-	router.POST("/user", r.User)
+	router.GET("/repo/log/:user/:path", r.Log)
+	router.GET("/repo/files/:user/:path", r.Files)
+	router.GET("/repo/refs/:user/:path", r.Refs)
 	router.GET("/users", r.Users)
-	router.GET("/create", r.CreateUser)
+	router.POST("/user", r.PostUser)
+	router.POST("/repo", r.PostRepo)
+	router.GET("/create/user", r.CreateUser)
+	router.GET("/create/repo", r.CreateRepo)
 
 	addr := ctx.String("server_addr")
-
-	logger.Info("initialize git directory", "directory", gitPath)
-	if err := checkGitPath(logger, gitPath); err != nil {
-		logger.Error("cant create directory", "path", gitPath, "error", err)
-		return err
-	}
 
 	logger.Info("initialize ssh server", "addr", ctx.String("ssh_addr"))
 	sshServer, err := ssh.New(logger, database, ctx)
@@ -173,22 +168,6 @@ func checkConfigFiles() (string, bool) {
 		}
 	}
 	return "", false
-}
-
-func checkGitPath(logger *slog.Logger, path string) error {
-	path += "/repos"
-	f, err := os.Stat(path)
-	if err == nil && f.IsDir() {
-		return nil
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(path, 0o700); err != nil {
-			return err
-		}
-		logger.Debug("directory created", "path", path)
-		return nil
-	}
-	return err
 }
 
 func initLogger(ctx *cli.Context) *slog.Logger {

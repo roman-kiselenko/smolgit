@@ -4,7 +4,7 @@
 <div class="container">
   <div class="grid repository-header">
     <div><samp>{{ .repo.Path | formatAsGit }}</samp></div>
-    <div><a href="/repo{{ .repo.Path }}">Log</a></div>
+    <div><a href="/repo/log{{ .repo.Path }}">Log</a></div>
     <div><a href="/repo/files{{ .repo.Path }}">Files</a></div>
     <div><a href="/repo/refs{{ .repo.Path }}">Refs</a></div>
   </div>
@@ -16,19 +16,13 @@
       </tbody>
       <thead>
           <tr>
-              <th>Date</th>
-              <th>Message</th>
-              <th>Hash</th>
-              <th>Author</th>
+              <th>Name</th>
           </tr>
       </thead>
       <tbody>
-        {{ range .commits }}
+        {{ range .files }}
         <tr>
-          <td><small>{{ .Date }}</small></td>
-          <td>{{ .Message }}</td>
-          <td><samp>{{ .Hash }}</samp></td>
-          <td><small>{{ .Author }}</small></td>
+          <td><small>{{ . }}</small></td>
         </tr>
         {{ end }}
       </tbody>

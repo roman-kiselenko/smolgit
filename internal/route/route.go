@@ -34,7 +34,7 @@ type Route struct {
 	fs           billy.Filesystem
 }
 
-//go:embed templates
+//go:embed templates/html
 var htmlTemplates embed.FS
 
 func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base, gitBase string) (Route, error) {
@@ -51,15 +51,9 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base
 	})
 	tmpl, err := temp.ParseFS(
 		htmlTemplates,
-		"templates/layout.html",
-		"templates/pages/index.html",
-		"templates/pages/500.html",
-		"templates/pages/404.html",
-		"templates/pages/repo.html",
-		"templates/pages/users.html",
-		"templates/pages/create.html",
-		"templates/pages/files.html",
-		"templates/pages/refs.html",
+		"templates/html/*.html",
+		"templates/html/**/*.html",
+		"templates/html/**/**/*.html",
 	)
 	if err != nil {
 		return r, err
@@ -87,7 +81,7 @@ func (r *Route) Index(c *gin.Context) {
 	})
 }
 
-func (r *Route) RepoRefs(c *gin.Context) {
+func (r *Route) Refs(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
 	repo, err := r.db.FindRepoBy(fullPath)
@@ -134,7 +128,7 @@ func (r *Route) RepoRefs(c *gin.Context) {
 	})
 }
 
-func (r *Route) RepoFiles(c *gin.Context) {
+func (r *Route) Files(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
 	repo, err := r.db.FindRepoBy(fullPath)
@@ -183,7 +177,7 @@ func (r *Route) RepoFiles(c *gin.Context) {
 	})
 }
 
-func (r *Route) Repo(c *gin.Context) {
+func (r *Route) Log(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
 	repo, err := r.db.FindRepoBy(fullPath)
@@ -222,7 +216,7 @@ func (r *Route) Repo(c *gin.Context) {
 	}
 	defer ct.Close()
 
-	c.HTML(http.StatusOK, "repo.html", gin.H{
+	c.HTML(http.StatusOK, "log.html", gin.H{
 		"title":   "Repo",
 		"repo":    repo,
 		"commits": commits,
@@ -238,12 +232,35 @@ func (r *Route) Users(c *gin.Context) {
 }
 
 func (r *Route) CreateUser(c *gin.Context) {
-	c.HTML(http.StatusOK, "create.html", gin.H{
-		"title": "Create Users",
+	c.HTML(http.StatusOK, "user.html", gin.H{
+		"title": "Create User",
 	})
 }
 
-func (r *Route) User(c *gin.Context) {
+func (r *Route) CreateRepo(c *gin.Context) {
+	c.HTML(http.StatusOK, "repo.html", gin.H{
+		"title": "Create Repo",
+	})
+}
+
+func (r *Route) PostRepo(c *gin.Context) {
+	path := c.PostForm("path")
+	description := c.PostForm("description")
+	r.logger.Debug("create repo", "path", path, "description", description)
+	// TODO find user
+	// user, err := r.db.FindUserFromKey(userID)
+	// if err != nil {
+	// 	r.logger.Error("cant find user", "err", err)
+	// 	c.HTML(http.StatusOK, "500.html", gin.H{
+	// 		"title": "Create Repo",
+	// 		"error": "Cant create repo",
+	// 	})
+	// 	return
+	// }
+	c.Redirect(http.StatusFound, "/")
+}
+
+func (r *Route) PostUser(c *gin.Context) {
 	login := c.PostForm("login")
 	password := c.PostForm("password")
 	key := c.PostForm("key")

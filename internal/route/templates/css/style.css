@@ -2,7 +2,7 @@
     --pico-font-size: 80%;
     --pico-border-radius: 1rem;
     --pico-typography-spacing-vertical: 1.5rem;
-    --pico-form-element-spacing-vertical: 1rem;
+    --pico-form-element-spacing-vertical: 0.5rem;
     --pico-form-element-spacing-horizontal: 1.25rem;
 }
 button {
