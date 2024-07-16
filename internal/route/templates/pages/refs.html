@@ -16,7 +16,7 @@
       </tbody>
       <thead>
           <tr>
-              <th>Name</th>
+              <th>Branch</th>
           </tr>
       </thead>
       <tbody>
@@ -27,5 +27,36 @@
         {{ end }}
       </tbody>
   </table>
-
+</div>
+<div class="container">
+  {{ if not .tags }}
+    <table>
+        <tbody>
+        </tbody>
+        <thead>
+            <tr>
+                <th>Tags not exist</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+  {{ else }}
+    <table>
+        <tbody>
+        </tbody>
+        <thead>
+            <tr>
+                <th>Tag</th>
+            </tr>
+        </thead>
+        <tbody>
+          {{ range .tags }}
+          <tr>
+            <td><small>{{ . }}</small></td>
+          </tr>
+          {{ end }}
+        </tbody>
+    </table>
+  {{ end }}
 </div>

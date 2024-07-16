@@ -8,7 +8,7 @@
 ### Usage
 
 1. **git operations**: Easily perform `pull`, `push`, and `fetch` operations. Create repository just by `push`ing.
-1. **repository visualization**: Browse the file tree, view the latest commit, and explore the commit and branch and tag lists.
+1. **repository visualization**: Browse files, view logs, explore the commit and branch and tag lists.
 1. **file content**: See the content of non-binary files.
 1. **user management**: Simple user management, create users with `ssh-keys` to allow them `push\pull`
 

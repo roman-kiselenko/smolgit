@@ -101,7 +101,18 @@ func (r *Route) RepoRefs(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
 		return
 	}
-	// TODO consider Until option
+	ti, err := gitRepo.Tags()
+	if err != nil {
+		r.logger.Error("go git", "err", err)
+	}
+	tags := []string{}
+	if err := ti.ForEach(func(tag *plumbing.Reference) error {
+		tags = append(tags, tag.Name().String())
+		return nil
+	}); err != nil {
+		r.logger.Error("git repo error", "git", ti)
+	}
+	defer ti.Close()
 	bi, err := gitRepo.Branches()
 	if err != nil {
 		r.logger.Error("go git", "err", err)
@@ -119,6 +130,7 @@ func (r *Route) RepoRefs(c *gin.Context) {
 		"title": "Refs",
 		"repo":  repo,
 		"refs":  sort.StringSlice(refs),
+		"tags":  sort.StringSlice(tags),
 	})
 }
 
