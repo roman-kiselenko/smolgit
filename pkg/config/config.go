@@ -18,7 +18,7 @@ type Config struct {
 	SSHAddr            string                   `koanf:"ssh.addr"`
 	GitPath            string                   `koanf:"git.path"`
 	GitBase            string                   `koanf:"git.base"`
-	Users              []map[string]interface{} `koanf:"git.users"`
+	GitUsers           []map[string]interface{} `koanf:"git.users"`
 	Version            string
 }
 
@@ -28,13 +28,28 @@ func (c *Config) Validate() error {
 }
 
 func (c *Config) FindUserByKey(key string) (model.User, error) {
-	for _, u := range c.Users {
+	for _, u := range c.GitUsers {
 		for _, k := range u["keys"].([]interface{}) {
+			p, _ := u["permissions"].(string)
 			if strings.HasPrefix(k.(string), key) {
 				return model.User{
-					User: u["login"].(string),
+					Name:        u["name"].(string),
+					Permissions: p,
 				}, nil
 			}
+		}
+	}
+	return model.User{}, errors.New("user not found")
+}
+
+func (c *Config) FindUserByName(name string) (model.User, error) {
+	for _, u := range c.GitUsers {
+		if u["name"].(string) == name {
+			p, _ := u["permissions"].(string)
+			return model.User{
+				Name:        u["name"].(string),
+				Permissions: p,
+			}, nil
 		}
 	}
 	return model.User{}, errors.New("user not found")

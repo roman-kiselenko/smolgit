@@ -1,7 +1,7 @@
 log:
   color: true
   json: false
-  level: INFO
+  level: DEBUG
 server:
   auth:
     enabled: false
@@ -18,9 +18,11 @@ git:
   path: /tmp/smolgit
   base: "git@my-git-server.lan"
   users:
-    - user: "bob"
-      keys:
-        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com
-    - user: "admin"
-      keys:
-        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDJFw9eLnccIVIIhrhSQcMXNGVAHf5dNwcxhqxXjz47+qLWmz2ZqhuQtIwAlygpAvSs7YWb7J+u5P4ZyHulUm56HD5L/1EJyvDJL+410dgd7f4gG4XD6lctnADh3q4tCtcTpnRyX3VnegRIbsq9HNS997bcLfp+bBv3yHnhkynaWZceLHPXPtKqmCnQ/LX0l68RMEw4dYx+a4BvSNtp6qGDF+W7GmJjYjqfxB/Jq8ptzbi93B5bdk5r1INn5vWC3UaLPMb6Z3GEbBiTNrvQsLiIagizsmOpUjlx0MQfe5t199UMOk/OYp3EjOgxHS/PwJ/QCOsxf5t6mfyHiUF9HBUVR06B7F80qjUywnx+Za9oD2fLNml8wyLcNbZvpi9I1FrbNoxujppwxYXubQmrfLvLEX+69P/4d50BUglBMjULE1UfFj/x/nVo58uNkkIxvpEujU34hMb2L6rM41V8aP1CM5jBHEIWWQ78wrVtQ1c4XbY0ZOcTcItwz9oD3YTnyA0= john@mail.com
+  - name: "bob"
+    permissions: "*"
+    keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com
+  - name: "admin"
+    permissions: "admin"
+    keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDJFw9eLnccIVIIhrhSQcMXNGVAHf5dNwcxhqxXjz47+qLWmz2ZqhuQtIwAlygpAvSs7YWb7J+u5P4ZyHulUm56HD5L/1EJyvDJL+410dgd7f4gG4XD6lctnADh3q4tCtcTpnRyX3VnegRIbsq9HNS997bcLfp+bBv3yHnhkynaWZceLHPXPtKqmCnQ/LX0l68RMEw4dYx+a4BvSNtp6qGDF+W7GmJjYjqfxB/Jq8ptzbi93B5bdk5r1INn5vWC3UaLPMb6Z3GEbBiTNrvQsLiIagizsmOpUjlx0MQfe5t199UMOk/OYp3EjOgxHS/PwJ/QCOsxf5t6mfyHiUF9HBUVR06B7F80qjUywnx+Za9oD2fLNml8wyLcNbZvpi9I1FrbNoxujppwxYXubQmrfLvLEX+69P/4d50BUglBMjULE1UfFj/x/nVo58uNkkIxvpEujU34hMb2L6rM41V8aP1CM5jBHEIWWQ78wrVtQ1c4XbY0ZOcTcItwz9oD3YTnyA0= john@mail.com

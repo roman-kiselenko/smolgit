@@ -122,7 +122,7 @@ func (r *Route) Refs(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "refs.html", gin.H{
 		"title": "Refs",
-		"repo":  model.Repository{Path: repoPath, User: &model.User{User: user}},
+		"repo":  model.Repository{Path: repoPath, User: &model.User{Name: user}},
 		"refs":  sort.StringSlice(refs),
 		"tags":  sort.StringSlice(tags),
 	})
@@ -173,7 +173,7 @@ func (r *Route) Files(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "files.html", gin.H{
 		"title": "Files",
-		"repo":  model.Repository{Path: repoPath, User: &model.User{User: user}},
+		"repo":  model.Repository{Path: repoPath, User: &model.User{Name: user}},
 		"files": sort.StringSlice(files),
 	})
 }
@@ -219,7 +219,7 @@ func (r *Route) Log(c *gin.Context) {
 	defer ct.Close()
 	c.HTML(http.StatusOK, "log.html", gin.H{
 		"title":   "Repo",
-		"repo":    model.Repository{Path: repoPath, User: &model.User{User: user}},
+		"repo":    model.Repository{Path: repoPath, User: &model.User{Name: user}},
 		"commits": commits,
 	})
 }

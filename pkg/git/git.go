@@ -154,7 +154,7 @@ func ListRepos(base string) ([]model.Repository, error) {
 	for _, e := range entries {
 		paths := strings.Split(strings.TrimPrefix(e, base), "/")
 		repos = append(repos, model.Repository{
-			User: &model.User{User: paths[1]},
+			User: &model.User{Name: paths[1]},
 			Path: paths[2],
 		})
 	}

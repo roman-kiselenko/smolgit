@@ -75,8 +75,8 @@ func (srv *Server) pkHandler(ctx ssh.Context, incomingKey ssh.PublicKey) bool {
 		slog.Error("user not found", "err", err)
 		return false
 	}
-	ctx.SetValue("user_name", user.User)
-	slog.Debug("found user", "name", user.User)
+	ctx.SetValue("user_name", user.Name)
+	slog.Debug("found user", "name", user.Name)
 	return true
 }
 
@@ -93,19 +93,29 @@ func (srv *Server) cmdRepo(s ssh.Session, cmd []string) int {
 
 	repoName := cmd[1]
 
-	userLogin, ok := s.Context().Value("user_name").(string)
-	if !ok || userLogin == "" {
-		slog.Error("cant find user with", "login", userLogin)
+	userName, ok := s.Context().Value("user_name").(string)
+	if !ok || userName == "" {
+		slog.Error("cant find user with", "user", userName)
 		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
 		return 1
 	}
-	if !strings.HasPrefix(repoName[1:], userLogin) {
-		slog.Error("wrong repo prefix", "repoName", repoName, "login", userLogin)
-		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
-		return 1
-	}
-	_, err := git.EnsureRepo(srv.fs, srv.cfg.GitBase, repoName)
+	user, err := srv.cfg.FindUserByName(userName)
 	if err != nil {
+		slog.Error("cant find user with", "user", userName)
+		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
+		return 1
+	}
+
+	// TODO better permissions check
+	if user.Permissions != "*" {
+		if !strings.HasPrefix(repoName[1:], userName) {
+			slog.Error("wrong repo prefix", "repoName", repoName, "user", user)
+			_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
+			return 1
+		}
+	}
+
+	if _, err := git.EnsureRepo(srv.fs, srv.cfg.GitBase, repoName); err != nil {
 		slog.Error("cant find or create repository", "err", err)
 		_, _ = io.WriteString(s.Stderr(), "Repo doesnt exist\r\n")
 		return 1
