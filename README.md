@@ -25,10 +25,9 @@
 
 ### Usage
 
-1. **git operations**: Easily perform `pull`, `push`, and `fetch` operations.
+1. **git operations**: Easily perform `pull`, `push`, `clone` and `fetch` operations.
 1. **repository visualization**: Browse files, view logs, explore the commit and branch and tag lists.
-1. **file content**: See the content of non-binary files.
-1. **user management**: Simple user management, create users with `ssh-keys` to allow them `push\pull`
+1. **user management**: Simple user management, add users with `ssh-keys` to `config.yaml`.
 
 
 ### Getting Started
@@ -44,7 +43,7 @@ Build from source by cloning repository and run `make build` to build the binary
 #### Run
 
 ```shell
-$> ./bin/smolgit server
+$> ./bin/smolgit
 4:37PM INF set loglevel level=DEBUG
 4:37PM INF version version=main-c77299f
 4:37PM INF initialize ssh server addr=:3080
@@ -54,55 +53,61 @@ $> ./bin/smolgit server
 
 #### Config
 
-If directory contains `config.yaml` file, it will be used (can be overrided with cli options).
+Generate default `config.yaml` file with command `./bin/smolgit config > config.yaml`.
 
 ```yaml
 log:
+  # Color log output
   color: true
+  # Log as json
   json: false
+  # Log level (INFO, DEBUG, TRACE, WARN)
   level: DEBUG
 server:
+  # Disable web server
+  disabled: false
+  # Enable basic http auth
   auth:
-    enabled: true
+    enabled: false
+    # Credentials for basic auth
     accounts:
+      - login: user2
+        password: bar
       - login: user1
         password: foo
+  # Web server address
   addr: ":3080"
+  # Navbar brand string
   brand: "smolgit"
 ssh:
+  # SSH server address
   addr: ":3081"
 git:
+  # Folder to save git repositories
   path: /tmp/smolgit
+  # Base for clone string formating
+  # (e.g. ssh://git@my-git-server.lan/myuser/project.git)
   base: "git@my-git-server.lan"
-users:
-  - user: "bob"
+  users:
+    # User name used for folder in git.path
+  - name: "bob"
+    # Permissions, wildcard or regex
+    # User to check access for other repositories
+    # '*' - access for all repositories
+    # 'admin' - access for admin's repositories
+    # '(admin|billy)' - access for admin's and billy's repositories
+    permissions: "*"
     keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com
-  - user: "admin"
-    keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDJFw9eLnccIVIIhrhSQcMXNGVAHf5dNwcxhqxXjz47+qLWmz2ZqhuQtIwAlygpAvSs7YWb7J+u5P4ZyHulUm56HD5L/1EJyvDJL+410dgd7f4gG4XD6lctnADh3q4tCtcTpnRyX3VnegRIbsq9HNS997bcLfp+bBv3yHnhkynaWZceLHPXPtKqmCnQ/LX0l68RMEw4dYx+a4BvSNtp6qGDF+W7GmJjYjqfxB/Jq8ptzbi93B5bdk5r1INn5vWC3UaLPMb6Z3GEbBiTNrvQsLiIagizsmOpUjlx0MQfe5t199UMOk/OYp3EjOgxHS/PwJ/QCOsxf5t6mfyHiUF9HBUVR06B7F80qjUywnx+Za9oD2fLNml8wyLcNbZvpi9I1FrbNoxujppwxYXubQmrfLvLEX+69P/4d50BUglBMjULE1UfFj/x/nVo58uNkkIxvpEujU34hMb2L6rM41V8aP1CM5jBHEIWWQ78wrVtQ1c4XbY0ZOcTcItwz9oD3YTnyA0= john@mail.com
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com
 ```
 
 cli options:
 
 ```shell
 $> ./bin/smolgit --help
-# ...
-GLOBAL OPTIONS:
-   --ssh_addr value                         Address for SSH server (default: ":3081")
-   --log_color                              Color output of logs, works only with text logs (default: true)
-   --log_json                               Output logs in json format (default: false)
-   --log_level value                        Set log level (INFO, DEBUG, WARN, TRACE) (default: "DEBUG")
-   --server_addr value                      Address for Web server (default: ":3080")
-   --server_brand value                     Header used in web (default: "smolgit")
-   --git_base value                         Format 'git clone ...' link (default: "git@my-git-server.lan")
-   --git_path value                         Set directory for git repositories (default: "./tmp/smolgit")
-   --db_path value                          Path to save database file (default: "./database.sqlite")
-   --root_login value                       Admin user will be create at first start
-   --root_password value                    Admin password will be create at first start
-   --root_keys value [ --root_keys value ]  Admin ssh-keys will be create at first start
-   --help, -h                               show help (default: false)
-   --version, -v                            print the version (default: false)
+Usage of ./bin/smolgit:
+  -config string
+        path to config (default "./config.yaml")
 ```
 
 #### Docker
@@ -127,13 +132,3 @@ TBD
 ## Contribution
 
 Contributions are more than welcome! Thank you!
-
-## Donations
-
-Donations are more than welcome! Thank you!
-
-1. BTC ``
-1. ETH ``
-1. TON ``
-1. USDT (BEP20) ``
-1. USDT (ETH20) ``

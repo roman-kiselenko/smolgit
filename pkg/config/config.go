@@ -14,6 +14,7 @@ type Config struct {
 	LogColor           bool                     `koanf:"log.color"`
 	LogJSON            bool                     `koanf:"log.json"`
 	LogLevel           string                   `koanf:"log.level"`
+	ServerDisabled     bool                     `koanf:"server.disabled"`
 	ServerAddr         string                   `koanf:"server.addr"`
 	ServerAuthEnabled  bool                     `koanf:"server.auth.enabled"`
 	ServerAuthAccounts []map[string]string      `koanf:"server.auth.accounts"`
