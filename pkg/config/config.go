@@ -18,7 +18,7 @@ type Config struct {
 	SSHAddr            string                   `koanf:"ssh.addr"`
 	GitPath            string                   `koanf:"git.path"`
 	GitBase            string                   `koanf:"git.base"`
-	Users              []map[string]interface{} `koanf:"users"`
+	Users              []map[string]interface{} `koanf:"git.users"`
 	Version            string
 }
 
