@@ -45,13 +45,11 @@ Build from source by cloning repository and run `make build` to build the binary
 
 ```shell
 $> ./bin/smolgit server
-12:30PM INF set loglevel level=DEBUG
-12:30PM INF found config file config=./config.yaml
-12:30PM INF version version=main-fbebd48
-12:30PM INF initialize sqlite database db_path=./database.sqlite
-12:30PM INF initialize ssh server addr=:3081
-12:30PM INF start server brand=smolgit address=:3080
-12:30PM INF starting SSH server addr=:3081
+2:36PM INF set loglevel level=DEBUG
+2:36PM INF version version=main-8efb52f
+2:36PM INF initialize ssh server addr=:3080
+2:36PM INF start server brand=smolgit address=:3080
+2:36PM INF starting SSH server addr=:3081
 ```
 
 #### Config
@@ -71,13 +69,15 @@ ssh:
 git:
   path: /tmp/smolgit
   base: "git@my-git-server.lan"
-db:
-  path: ./database.sqlite
-root:
-  login: "admin"
-  password: "root"
-  keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com
+users:
+  - login: "bob"
+    password: "root"
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCnx0/KV0tHhqgj2xHjuKqcyhKqyntPqHG+kd5EBFCZEW5zrzmY4ErKlA1aLcrGkwPsEjc5nKM9EvbzDdIqxQpPDl8oL6cxu0rQxwpYDDXSQxRsP6113rg6KLxfQZbvT3GkUv9deRMD1/CiPxZ0vMMv09U226kzaaf0q7F/Vo0iXGElwPl5Q73sXSUIqPr/Fcz4PEUwYRCXeMw07+ziksa9HwFApdP/JEbrzGa7BHmrx4qANOIbrxom8Csr7Eb0YnCnx08boxykFO5l7lLWYzU6ji6wTIGtL/52kJiHz764RnAMKQHFDEhFejj5qQi/NLlnhw0x2ZZh0Oc2O6oNQ+f3PTyygnBNoffRhZTEU0jgj3gatoy4my77pRbRhf7hcRT8E0/qZVLWSEZEe8R46Fd5KxuFi5s92JRV92VhG7L+91J7tczi5OeKTDUZFTTYhGcBv3rzAlDaiNvLUoBvTEJXysUZsaBJyHqZ6Wt9CyN2Llgk= developer@mail.com
+  - login: "admin"
+    password: "root"
+    keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDJFw9eLnccIVIIhrhSQcMXNGVAHf5dNwcxhqxXjz47+qLWmz2ZqhuQtIwAlygpAvSs7YWb7J+u5P4ZyHulUm56HD5L/1EJyvDJL+410dgd7f4gG4XD6lctnADh3q4tCtcTpnRyX3VnegRIbsq9HNS997bcLfp+bBv3yHnhkynaWZceLHPXPtKqmCnQ/LX0l68RMEw4dYx+a4BvSNtp6qGDF+W7GmJjYjqfxB/Jq8ptzbi93B5bdk5r1INn5vWC3UaLPMb6Z3GEbBiTNrvQsLiIagizsmOpUjlx0MQfe5t199UMOk/OYp3EjOgxHS/PwJ/QCOsxf5t6mfyHiUF9HBUVR06B7F80qjUywnx+Za9oD2fLNml8wyLcNbZvpi9I1FrbNoxujppwxYXubQmrfLvLEX+69P/4d50BUglBMjULE1UfFj/x/nVo58uNkkIxvpEujU34hMb2L6rM41V8aP1CM5jBHEIWWQ78wrVtQ1c4XbY0ZOcTcItwz9oD3YTnyA0= john@mail.com
 ```
 
 cli options:
@@ -110,15 +110,16 @@ TBD
 
 - go (>= 1.22+)
 - git
-- sqlite
 
 
 ## Built with
 
+:heart:
+
 - [golang](https://go.dev/)
 - [gin](https://github.com/gin-gonic/gin)
 - [pico](https://picocss.com/docs)
-- [sqlite](https://www.sqlite.org/)
+- [gossh](https://github.com/gliderlabs/ssh)
 
 ## Contribution
 

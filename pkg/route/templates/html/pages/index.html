@@ -2,13 +2,6 @@
 {{ template "layout" $title }}
 
 <div class="container">
-  <div class="grid">
-      <a href="/create/repo">
-        <button class="btn secondary">New repo</button>
-      </a>
-  </div>
-</div>
-<div class="container">
   <table>
       <tbody>
       </tbody><thead>
@@ -17,7 +10,6 @@
               <th>Owner</th>
               <th>Branches</th>
               <th>Tags</th>
-              <th>Created</th>
           </tr>
       </thead>
       <tbody>
@@ -39,7 +31,6 @@
               {{ end }}
             </td>
           {{ end }}
-          <td><small class="b-accent">{{ .CreatedAt | formatAsDate }}</small></td>
         </tr>
         {{ end }}
       </tbody>

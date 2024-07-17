@@ -5,125 +5,61 @@ import (
 	"os"
 	"time"
 
-	"github.com/lmittmann/tint"
-	sloggin "github.com/samber/slog-gin"
-	altsrc "github.com/urfave/cli-altsrc/v3"
-
-	"smolgit/internal/db"
-	"smolgit/internal/route"
-	"smolgit/internal/ssh"
+	"smolgit/pkg/config"
+	"smolgit/pkg/route"
+	"smolgit/pkg/ssh"
 
 	"github.com/gin-gonic/gin"
-	"github.com/urfave/cli/v3"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
+	"github.com/lmittmann/tint"
+	sloggin "github.com/samber/slog-gin"
 )
 
 var (
-	configs   = []string{"./config.yaml", "./config.yml"}
+	k         = koanf.New(".")
 	logOutput = os.Stdout
+	logger    *slog.Logger
+	cfg       config.Config
 )
 
-func Server(version string) *cli.Command {
-	return &cli.Command{
-		Name:        "server",
-		Usage:       "Start server",
-		Description: "smolgit server handles all stuff for you",
-		Version:     version,
-		Action:      initApp,
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "ssh_addr",
-				Usage:   "Address for SSH server",
-				Value:   ":3081",
-				Sources: altsrc.YAML("ssh.addr", configs...),
-			},
-			&cli.BoolFlag{
-				Name:    "log_color",
-				Usage:   "Color output of logs, works only with text logs",
-				Value:   true,
-				Sources: altsrc.YAML("log.color", configs...),
-			},
-			&cli.BoolFlag{
-				Name:    "log_json",
-				Usage:   "Output logs in json format",
-				Value:   false,
-				Sources: altsrc.YAML("log.json", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "log_level",
-				Usage:   "Set log level (INFO, DEBUG, WARN, TRACE)",
-				Value:   "DEBUG",
-				Sources: altsrc.YAML("log.level", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "server_addr",
-				Usage:   "Address for Web server",
-				Value:   ":3080",
-				Sources: altsrc.YAML("server.addr", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "server_brand",
-				Usage:   "Header used in web",
-				Value:   "smolgit",
-				Sources: altsrc.YAML("server.brand", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "git_base",
-				Usage:   "Format 'git clone ...' link",
-				Value:   "git@my-git-server.lan",
-				Sources: altsrc.YAML("git.base", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "git_path",
-				Usage:   "Set directory for git repositories",
-				Value:   "./tmp/smolgit",
-				Sources: altsrc.YAML("git.path", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "db_path",
-				Usage:   "Path to save database file",
-				Value:   "./database.sqlite",
-				Sources: altsrc.YAML("db.path", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "root_login",
-				Usage:   "Admin user will be create at first start",
-				Sources: altsrc.YAML("root.login", configs...),
-			},
-			&cli.StringFlag{
-				Name:    "root_password",
-				Usage:   "Admin password will be create at first start",
-				Sources: altsrc.YAML("root.password", configs...),
-			},
-			&cli.StringSliceFlag{
-				Name:    "root_keys",
-				Usage:   "Admin ssh-keys will be create at first start",
-				Sources: altsrc.YAML("root.keys", configs...),
-			},
-		},
+type App struct {
+	Config *config.Config
+}
+
+func New(version string) (*App, error) {
+	app := &App{}
+	f := file.Provider("./config.yaml")
+	cfg.Version = version
+	k = koanf.New(".")
+	if err := k.Load(f, yaml.Parser()); err != nil {
+		return app, err
 	}
+	if err := k.UnmarshalWithConf("", &cfg, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true}); err != nil {
+		return app, err
+	}
+	app.Config = &cfg
+	err := f.Watch(func(_ interface{}, _ error) {
+		k = koanf.New(".")
+		k.Load(f, yaml.Parser())
+		k.UnmarshalWithConf("", &cfg, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true})
+		logger.Info("reloading config...", "cfg", "./config.yaml")
+		app.Config = &cfg
+	})
+	return app, err
 }
 
 // TODO move all check to PreStart
-func initApp(ctx *cli.Context) error {
-	logger := initLogger(ctx)
+func (a *App) Sleep() error {
+	logger := initLogger()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(sloggin.New(logger))
 	router.Use(gin.Recovery())
-	if fileName, ok := checkConfigFiles(); ok {
-		logger.Info("found config file", "config", fileName)
-	}
+	logger.Info("version", "version", a.Config.Version)
 
-	logger.Info("version", "version", ctx.Command.Version)
-	logger.Info("initialize sqlite database", "db_path", ctx.String("db_path"))
-	database, err := db.New(logger, ctx)
-	if err != nil {
-		logger.Error("cant connect sqlite", "error", err)
-		return err
-	}
-	gitPath := ctx.String("git_path")
-
-	r, err := route.New(logger, router, database, gitPath, ctx.String("git_base"))
+	r, err := route.New(logger, router, a.Config)
 	if err != nil {
 		logger.Error("cant create routes", "error", err)
 		return err
@@ -135,51 +71,38 @@ func initApp(ctx *cli.Context) error {
 	router.GET("/repo/log/:user/:path", r.Log)
 	router.GET("/repo/files/:user/:path", r.Files)
 	router.GET("/repo/refs/:user/:path", r.Refs)
-	router.GET("/users", r.Users)
-	router.POST("/user", r.PostUser)
 	router.POST("/repo", r.PostRepo)
-	router.GET("/create/user", r.CreateUser)
 	router.GET("/create/repo", r.CreateRepo)
 
-	addr := ctx.String("server_addr")
+	addr := a.Config.ServerAddr
 
-	logger.Info("initialize ssh server", "addr", ctx.String("ssh_addr"))
-	sshServer, err := ssh.New(logger, database, ctx)
+	logger.Info("initialize ssh server", "addr", addr)
+	sshServer, err := ssh.New(logger, a.Config)
 	if err != nil {
 		logger.Error("cant run ssh server", "error", err)
 		return err
 	}
 
 	go func() {
-		logger.Info("starting SSH server", "addr", ctx.String("ssh_addr"))
+		logger.Info("starting SSH server", "addr", a.Config.SSHAddr)
 		if err := sshServer.ListenAndServe(); err != nil {
 			logger.Error("cant run ssh server", "error", err)
 		}
 	}()
 
-	logger.Info("start server", "brand", ctx.String("server_brand"), "address", addr)
+	logger.Info("start server", "brand", a.Config.ServerBrand, "address", addr)
 	return router.Run(addr)
 }
 
-func checkConfigFiles() (string, bool) {
-	for _, f := range configs {
-		if _, err := os.Stat(f); err == nil {
-			return f, true
-		}
-	}
-	return "", false
-}
-
-func initLogger(ctx *cli.Context) *slog.Logger {
+func initLogger() *slog.Logger {
 	level := new(slog.LevelVar)
 	handler := &slog.HandlerOptions{
 		Level: level,
 	}
-	var logger *slog.Logger
-	if ctx.Bool("log_json") {
+	if cfg.LogJSON {
 		logger = slog.New(slog.NewJSONHandler(logOutput, handler))
 	} else {
-		if ctx.Bool("log_color") {
+		if cfg.LogColor {
 			logger = slog.New(tint.NewHandler(logOutput, &tint.Options{
 				Level:      level,
 				TimeFormat: time.Kitchen,
@@ -190,7 +113,7 @@ func initLogger(ctx *cli.Context) *slog.Logger {
 	}
 
 	slog.SetDefault(logger)
-	if err := level.UnmarshalText([]byte(ctx.String("log_level"))); err != nil {
+	if err := level.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
 		level.Set(slog.LevelDebug)
 	}
 	logger.Info("set loglevel", "level", level)

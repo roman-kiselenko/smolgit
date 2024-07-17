@@ -1,37 +1,34 @@
 package config
 
 import (
-	"os"
+	"errors"
+	"strings"
 
-	"gopkg.in/yaml.v2"
+	"smolgit/pkg/model"
 )
 
-// Config struct for webapp config
 type Config struct {
-	Server struct {
-		Host string `yaml:"host"`
-	} `yaml:"server"`
+	LogColor    bool                     `koanf:"log.color"`
+	LogJSON     bool                     `koanf:"log.json"`
+	LogLevel    string                   `koanf:"log.level"`
+	ServerAddr  string                   `koanf:"server.addr"`
+	ServerBrand string                   `koanf:"server.brand"`
+	SSHAddr     string                   `koanf:"ssh.addr"`
+	GitPath     string                   `koanf:"git.path"`
+	GitBase     string                   `koanf:"git.base"`
+	Users       []map[string]interface{} `koanf:"users"`
+	Version     string
 }
 
-// NewConfig returns a new decoded Config struct
-func NewConfig(configPath string) (*Config, error) {
-	// Create config structure
-	config := &Config{}
-
-	// Open config file
-	file, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
+func (c *Config) FindUserByKey(key string) (model.User, error) {
+	for _, u := range c.Users {
+		for _, k := range u["keys"].([]interface{}) {
+			if strings.HasPrefix(k.(string), key) {
+				return model.User{
+					Login: u["login"].(string),
+				}, nil
+			}
+		}
 	}
-	defer file.Close()
-
-	// Init new YAML decode
-	d := yaml.NewDecoder(file)
-
-	// Start YAML decoding from file
-	if err := d.Decode(&config); err != nil {
-		return nil, err
-	}
-
-	return config, nil
+	return model.User{}, errors.New("user not found")
 }

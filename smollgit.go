@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"log"
-	"os"
 
 	"smolgit/cmd"
 )
@@ -11,9 +9,11 @@ import (
 var Version = "dev"
 
 func main() {
-	app := cmd.Server(Version)
-
-	if err := app.Run(context.Background(), os.Args); err != nil {
-		log.Fatalf("failed to start: %s", err)
+	app, err := cmd.New(Version)
+	if err != nil {
+		log.Fatalf("failed to init app: %s", err)
+	}
+	if err := app.Sleep(); err != nil {
+		log.Fatalf("failed to start app: %s", err)
 	}
 }

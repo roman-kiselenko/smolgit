@@ -1,7 +1,6 @@
 package route
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
@@ -11,11 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"smolgit/internal/db"
-	"smolgit/internal/git"
-	"smolgit/internal/ssh"
-
-	gssh "golang.org/x/crypto/ssh"
+	"smolgit/pkg/config"
+	"smolgit/pkg/git"
+	"smolgit/pkg/model"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
@@ -27,23 +24,19 @@ import (
 )
 
 type Route struct {
-	repoLinkBase string
-	db           *db.Database
-	logger       *slog.Logger
-	base         string
-	fs           billy.Filesystem
+	logger *slog.Logger
+	fs     billy.Filesystem
+	cfg    *config.Config
 }
 
 //go:embed templates/html
 var htmlTemplates embed.FS
 
-func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base, gitBase string) (Route, error) {
+func New(logger *slog.Logger, ginEngine *gin.Engine, cfg *config.Config) (Route, error) {
 	r := Route{
-		repoLinkBase: gitBase,
-		db:           database,
-		logger:       logger,
-		base:         base,
-		fs:           osfs.New(base),
+		logger: logger,
+		fs:     osfs.New(cfg.GitPath),
+		cfg:    cfg,
 	}
 	temp := template.New("").Funcs(template.FuncMap{
 		"formatAsDate": formatAsDate,
@@ -67,7 +60,7 @@ func New(logger *slog.Logger, ginEngine *gin.Engine, database *db.Database, base
 }
 
 func (r *Route) formatAsGit(path string) string {
-	return fmt.Sprintf("ssh://%s%s", r.repoLinkBase, path)
+	return fmt.Sprintf("ssh://%s/%s", r.cfg.GitBase, path)
 }
 
 func formatPath(path string) string {
@@ -80,9 +73,15 @@ func formatAsDate(t time.Time) string {
 }
 
 func (r *Route) Index(c *gin.Context) {
-	repos, _ := r.db.ListRepos()
+	repos, err := git.ListRepos(r.cfg.GitPath)
+	if err != nil {
+		r.logger.Error("cant find repository", "err", err)
+		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": "cant find any repository"})
+		return
+	}
+	r.logger.Info("repositories", "repos", repos)
 	for _, repo := range repos {
-		gitRepo, _ := git.OpenRepo(r.logger, r.fs, r.base, repo.Path)
+		gitRepo, _ := git.OpenRepo(r.logger, r.fs, r.cfg.GitPath, repo.Path)
 		tags, _ := gitRepo.GetTags(true)
 		repo.Tags = tags
 		refs, _ := gitRepo.GetBranches(true)
@@ -98,12 +97,8 @@ func (r *Route) Index(c *gin.Context) {
 func (r *Route) Refs(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
-	repo, err := r.db.FindRepoBy(fullPath)
-	if err != nil {
-		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-		return
-	}
-	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	// TODO check if repo exist
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.cfg.GitPath, fullPath)
 	if err != nil {
 		r.logger.Error("cant find repository", "err", err)
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
@@ -123,7 +118,7 @@ func (r *Route) Refs(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "refs.html", gin.H{
 		"title": "Refs",
-		"repo":  repo,
+		"repo":  model.Repository{Path: repoPath, User: &model.User{Login: user}},
 		"refs":  sort.StringSlice(refs),
 		"tags":  sort.StringSlice(tags),
 	})
@@ -132,12 +127,8 @@ func (r *Route) Refs(c *gin.Context) {
 func (r *Route) Files(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
-	repo, err := r.db.FindRepoBy(fullPath)
-	if err != nil {
-		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-		return
-	}
-	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	// TODO check if repo exist
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.cfg.GitPath, fullPath)
 	if err != nil {
 		r.logger.Error("cant find repository", "err", err)
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
@@ -173,7 +164,7 @@ func (r *Route) Files(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "files.html", gin.H{
 		"title": "Files",
-		"repo":  repo,
+		"repo":  model.Repository{Path: repoPath, User: &model.User{Login: user}},
 		"files": sort.StringSlice(files),
 	})
 }
@@ -181,12 +172,8 @@ func (r *Route) Files(c *gin.Context) {
 func (r *Route) Log(c *gin.Context) {
 	user, repoPath := c.Param("user"), c.Param("path")
 	fullPath := "/" + user + "/" + repoPath
-	repo, err := r.db.FindRepoBy(fullPath)
-	if err != nil {
-		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-		return
-	}
-	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.base, fullPath)
+	// TODO check if repo exist
+	gitRepo, err := git.OpenRepo(r.logger, r.fs, r.cfg.GitPath, fullPath)
 	if err != nil {
 		r.logger.Error("cant find repository", "err", err)
 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
@@ -219,22 +206,8 @@ func (r *Route) Log(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "log.html", gin.H{
 		"title":   "Repo",
-		"repo":    repo,
+		"repo":    model.Repository{Path: repoPath, User: &model.User{Login: user}},
 		"commits": commits,
-	})
-}
-
-func (r *Route) Users(c *gin.Context) {
-	users, _ := r.db.ListUsers()
-	c.HTML(http.StatusOK, "users.html", gin.H{
-		"title": "Users",
-		"users": users,
-	})
-}
-
-func (r *Route) CreateUser(c *gin.Context) {
-	c.HTML(http.StatusOK, "user.html", gin.H{
-		"title": "Create User",
 	})
 }
 
@@ -259,40 +232,6 @@ func (r *Route) PostRepo(c *gin.Context) {
 	// 	return
 	// }
 	c.Redirect(http.StatusFound, "/")
-}
-
-func (r *Route) PostUser(c *gin.Context) {
-	login := c.PostForm("login")
-	password := c.PostForm("password")
-	key := c.PostForm("key")
-	pk, err := ssh.Parsepk([]byte(key))
-	if err != nil {
-		r.logger.Error("cant parse key", "err", err)
-		c.HTML(http.StatusOK, "500.html", gin.H{
-			"title": "Create Users",
-			"error": "Cant parse ssh-key",
-		})
-		return
-	}
-	kkey := string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(pk)))
-	user, _ := r.db.FindUserFromKey(kkey)
-	if user.ID != nil && *user.ID > 0 {
-		r.logger.Error("cant create user", "err", "duplicate ssh-key")
-		c.HTML(http.StatusOK, "500.html", gin.H{
-			"title": "Create Users",
-			"error": "Duplicate ssh key",
-		})
-		return
-	}
-	if err := r.db.InsertUser(login, password, kkey); err != nil {
-		r.logger.Error("cant create user", "err", err)
-		c.HTML(http.StatusOK, "500.html", gin.H{
-			"title": "Create Users",
-			"error": "Cant create user",
-		})
-		return
-	}
-	c.Redirect(http.StatusFound, "/users")
 }
 
 //go:embed templates/css

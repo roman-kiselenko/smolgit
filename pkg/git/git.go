@@ -7,8 +7,11 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
+
+	"smolgit/pkg/model"
 
 	"github.com/gliderlabs/ssh"
 	billy "github.com/go-git/go-billy/v5"
@@ -133,6 +136,28 @@ func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string)
 	}
 
 	return &Repo{repo}, nil
+}
+
+func ListRepos(base string) ([]model.Repository, error) {
+	repos := []model.Repository{}
+	info, err := os.Stat(base)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return repos, fmt.Errorf("%s is not exist err: %s", base, err)
+	}
+	if !info.IsDir() {
+		return repos, fmt.Errorf("%s is not a directory", base)
+	}
+	entries, err := filepath.Glob(base + "/*/*")
+	if err != nil {
+		return repos, fmt.Errorf("cant read path: %s err: %s", base, err)
+	}
+	for _, e := range entries {
+		repos = append(repos, model.Repository{
+			User: &model.User{Login: "admin"},
+			Path: strings.TrimPrefix(e, base),
+		})
+	}
+	return repos, nil
 }
 
 func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*Repo, error) {
