@@ -40,23 +40,22 @@ func New(version string) (*App, error) {
 	}
 	app.Config = &cfg
 	logger = initLogger()
-	err := f.Watch(func(_ interface{}, _ error) {
-		k = koanf.New(".")
-		k.Load(f, yaml.Parser())
-		k.UnmarshalWithConf("", &cfg, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true})
-		logger.Info("reloading config...", "cfg", "./config.yaml")
-		app.Config = &cfg
-		logger = initLogger()
-	})
-	return app, err
+	return app, nil
 }
 
-// TODO move all check to PreStart
-func (a *App) Sleep() error {
+func (a *App) Run() error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 	logger.Info("version", "version", a.Config.Version)
+	if cfg.ServerAuthEnabled {
+		logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
+		accounts := gin.Accounts{}
+		for _, a := range cfg.ServerAuthAccounts {
+			accounts[a["login"]] = a["password"]
+		}
+		router.Use(gin.BasicAuth(accounts))
+	}
 
 	r, err := route.New(router, a.Config)
 	if err != nil {

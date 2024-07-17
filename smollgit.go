@@ -13,7 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to init app: %s", err)
 	}
-	if err := app.Sleep(); err != nil {
+	if err := app.Run(); err != nil {
 		log.Fatalf("failed to start app: %s", err)
 	}
 }

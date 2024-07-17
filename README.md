@@ -62,6 +62,11 @@ log:
   json: false
   level: DEBUG
 server:
+  auth:
+    enabled: true
+    accounts:
+      - login: user1
+        password: foo
   addr: ":3080"
   brand: "smolgit"
 ssh:

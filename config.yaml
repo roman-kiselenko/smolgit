@@ -1,10 +1,17 @@
 log:
   color: true
   json: false
-  level: DEBUG
+  level: INFO
 server:
+  auth:
+    enabled: false
+    accounts:
+      - login: user2
+        password: bar
+      - login: user1
+        password: foo
   addr: ":3080"
-  brand: "smolgit"
+  brand: "mygit"
 ssh:
   addr: ":3081"
 git:
