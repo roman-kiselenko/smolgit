@@ -1,7 +1,10 @@
 package config
 
 import (
+	"bytes"
+	_ "embed"
 	"errors"
+	"html/template"
 	"strings"
 
 	"smolgit/pkg/model"
@@ -53,4 +56,23 @@ func (c *Config) FindUserByName(name string) (model.User, error) {
 		}
 	}
 	return model.User{}, errors.New("user not found")
+}
+
+//go:embed config.TEMPLATE.yaml
+var configTemplate string
+
+func GenerateConfig() ([]byte, error) {
+	return executeTemplate(configTemplate)
+}
+
+func executeTemplate(tmpl string) ([]byte, error) {
+	x, err := template.New("").Parse(tmpl)
+	if err != nil {
+		return nil, err
+	}
+	var b bytes.Buffer
+	if err := x.Execute(&b, map[string]string{}); err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
 }

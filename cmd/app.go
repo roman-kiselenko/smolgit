@@ -27,9 +27,9 @@ type App struct {
 	Config *config.Config
 }
 
-func New(version string) (*App, error) {
+func New(version string, configPath *string) (*App, error) {
 	app := &App{}
-	f := file.Provider("./config.yaml")
+	f := file.Provider(*configPath)
 	cfg.Version = version
 	k = koanf.New(".")
 	if err := k.Load(f, yaml.Parser()); err != nil {
