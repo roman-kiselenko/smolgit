@@ -15,8 +15,8 @@
       <tbody>
         {{ range .repos }}
         <tr>
-          <td><a class="info" href="/repo/log{{ .Path }}">{{ .Path | formatPath }}</a></td>
-          <td>{{ .User.Login }}</td>
+          <td><a class="info" href="/repo/log/{{ .GetFullPath }}">{{ .GetFullPath }}</a></td>
+          <td>{{ .User.User }}</td>
           <td>
             {{ range .Refs }}
               <small><kbd>{{ . }}</kbd></small><br>

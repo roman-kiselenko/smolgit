@@ -24,4 +24,4 @@ COPY --from=base $GOPATH/src/smolgit .
 
 USER small-user:small-user
 
-CMD ["./smolgit"]
+CMD ["./smolgit", "server"]

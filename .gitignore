@@ -1,4 +1,3 @@
 bin/
 tmp/
-database.sqlite
 .DS_Store

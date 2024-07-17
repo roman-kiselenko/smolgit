@@ -1,10 +1,9 @@
 package model
 
 type User struct {
-	Login    string
-	Password string
-	Repos    []*Repository
-	Keys     []string
+	User  string
+	Repos []*Repository
+	Keys  []string
 }
 
 type Repository struct {
@@ -12,4 +11,8 @@ type Repository struct {
 	Path string
 	Refs []string
 	Tags []string
+}
+
+func (r Repository) GetFullPath() string {
+	return r.User.User + "/" + r.Path
 }

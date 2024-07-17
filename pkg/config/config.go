@@ -20,12 +20,16 @@ type Config struct {
 	Version     string
 }
 
+func (c *Config) Validate() error {
+	return nil
+}
+
 func (c *Config) FindUserByKey(key string) (model.User, error) {
 	for _, u := range c.Users {
 		for _, k := range u["keys"].([]interface{}) {
 			if strings.HasPrefix(k.(string), key) {
 				return model.User{
-					Login: u["login"].(string),
+					User: u["login"].(string),
 				}, nil
 			}
 		}

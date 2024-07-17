@@ -14,7 +14,6 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 	"github.com/lmittmann/tint"
-	sloggin "github.com/samber/slog-gin"
 )
 
 var (
@@ -40,26 +39,26 @@ func New(version string) (*App, error) {
 		return app, err
 	}
 	app.Config = &cfg
+	logger = initLogger()
 	err := f.Watch(func(_ interface{}, _ error) {
 		k = koanf.New(".")
 		k.Load(f, yaml.Parser())
 		k.UnmarshalWithConf("", &cfg, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true})
 		logger.Info("reloading config...", "cfg", "./config.yaml")
 		app.Config = &cfg
+		logger = initLogger()
 	})
 	return app, err
 }
 
 // TODO move all check to PreStart
 func (a *App) Sleep() error {
-	logger := initLogger()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.Use(sloggin.New(logger))
 	router.Use(gin.Recovery())
 	logger.Info("version", "version", a.Config.Version)
 
-	r, err := route.New(logger, router, a.Config)
+	r, err := route.New(router, a.Config)
 	if err != nil {
 		logger.Error("cant create routes", "error", err)
 		return err
@@ -71,13 +70,11 @@ func (a *App) Sleep() error {
 	router.GET("/repo/log/:user/:path", r.Log)
 	router.GET("/repo/files/:user/:path", r.Files)
 	router.GET("/repo/refs/:user/:path", r.Refs)
-	router.POST("/repo", r.PostRepo)
-	router.GET("/create/repo", r.CreateRepo)
 
 	addr := a.Config.ServerAddr
 
 	logger.Info("initialize ssh server", "addr", addr)
-	sshServer, err := ssh.New(logger, a.Config)
+	sshServer, err := ssh.New(a.Config)
 	if err != nil {
 		logger.Error("cant run ssh server", "error", err)
 		return err

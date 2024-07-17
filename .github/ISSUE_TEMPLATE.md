@@ -14,4 +14,4 @@
 
 - [ ] Version (`smolgit --version`)
 - [ ] Config (content of `config.yaml` if exist)
-- [ ] Is `git` and `sqlite3` installed?
+- [ ] Is `git` installed?

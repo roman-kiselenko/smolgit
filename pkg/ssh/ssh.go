@@ -17,17 +17,15 @@ import (
 )
 
 type Server struct {
-	fs     billy.Filesystem
-	logger *slog.Logger
-	ssh    *ssh.Server
-	cfg    *config.Config
+	fs  billy.Filesystem
+	ssh *ssh.Server
+	cfg *config.Config
 }
 
-func New(logger *slog.Logger, cfg *config.Config) (*Server, error) {
+func New(cfg *config.Config) (*Server, error) {
 	srv := &Server{
-		logger: logger,
-		cfg:    cfg,
-		fs:     osfs.New(cfg.GitPath),
+		cfg: cfg,
+		fs:  osfs.New(cfg.GitPath),
 	}
 
 	srv.ssh = &ssh.Server{
@@ -40,7 +38,7 @@ func New(logger *slog.Logger, cfg *config.Config) (*Server, error) {
 
 func (srv *Server) handler(s ssh.Session) {
 	cmd := s.Command()
-	srv.logger.Info("new connection", "cmd", cmd)
+	slog.Debug("new connection", "cmd", cmd)
 
 	if len(cmd) == 0 {
 		cmd = []string{"whoami"}
@@ -50,35 +48,35 @@ func (srv *Server) handler(s ssh.Session) {
 
 	switch cmd[0] {
 	case "git-receive-pack":
-		srv.logger.Debug("receive cmd git-receive-pack", "cmd", cmd)
+		slog.Debug("receive cmd git-receive-pack", "cmd", cmd)
 		exit = srv.cmdRepo(s, cmd)
 	case "git-upload-pack":
-		srv.logger.Debug("receive cmd git-upload-pack", "cmd", cmd)
+		slog.Debug("receive cmd git-upload-pack", "cmd", cmd)
 		exit = srv.cmdRepo(s, cmd)
 	default:
-		srv.logger.Debug("command not found\r\n", "cmd", cmd[0])
+		slog.Debug("command not found\r\n", "cmd", cmd[0])
 		exit = 1
 	}
 
-	srv.logger.Info("return_code", "exit_code", exit)
+	slog.Info("return_code", "exit_code", exit)
 	_ = s.Exit(exit)
 }
 
 func (srv *Server) pkHandler(ctx ssh.Context, incomingKey ssh.PublicKey) bool {
-	srv.logger.Info("handle key", "remote_user", ctx.User(), "remote_addr", ctx.RemoteAddr().String())
+	slog.Info("handle key", "remote_user", ctx.User(), "remote_addr", ctx.RemoteAddr().String())
 
 	if ctx.User() != "git" {
-		srv.logger.Error("wrong remote_user", "user", ctx.User())
+		slog.Error("wrong remote_user", "user", ctx.User())
 		return false
 	}
 
 	user, err := srv.cfg.FindUserByKey(string(bytes.TrimSpace(gssh.MarshalAuthorizedKey(incomingKey))))
 	if err != nil {
-		srv.logger.Error("user not found", "err", err)
+		slog.Error("user not found", "err", err)
 		return false
 	}
-	ctx.SetValue("user_name", user.Login)
-	srv.logger.Debug("found user", "name", user.Login)
+	ctx.SetValue("user_name", user.User)
+	slog.Debug("found user", "name", user.User)
 	return true
 }
 
@@ -97,25 +95,25 @@ func (srv *Server) cmdRepo(s ssh.Session, cmd []string) int {
 
 	userLogin, ok := s.Context().Value("user_name").(string)
 	if !ok || userLogin == "" {
-		srv.logger.Error("cant find user with", "login", userLogin)
+		slog.Error("cant find user with", "login", userLogin)
 		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
 		return 1
 	}
 	if !strings.HasPrefix(repoName[1:], userLogin) {
-		srv.logger.Error("wrong repo prefix", "repoName", repoName, "login", userLogin)
+		slog.Error("wrong repo prefix", "repoName", repoName, "login", userLogin)
 		_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
 		return 1
 	}
-	_, err := git.EnsureRepo(srv.logger, srv.fs, srv.cfg.GitBase, repoName)
+	_, err := git.EnsureRepo(srv.fs, srv.cfg.GitBase, repoName)
 	if err != nil {
-		srv.logger.Error("cant find or create repository", "err", err)
+		slog.Error("cant find or create repository", "err", err)
 		_, _ = io.WriteString(s.Stderr(), "Repo doesnt exist\r\n")
 		return 1
 	}
 	// TODO sanitize input
 	// Get path from user
-	srv.logger.Debug("run command", "cmd", cmd, "root", srv.fs.Root(), "path", repoName[1:])
-	returnCode := git.RunCommand(srv.logger, srv.fs.Root(), s, []string{cmd[0], repoName[1:]}, []string{})
+	slog.Debug("run command", "cmd", cmd, "root", srv.fs.Root(), "path", repoName[1:])
+	returnCode := git.RunCommand(srv.fs.Root(), s, []string{cmd[0], repoName[1:]}, []string{})
 	return returnCode
 }
 

@@ -27,7 +27,6 @@ type Repo struct {
 }
 
 func RunCommand(
-	logger *slog.Logger,
 	cwd string,
 	session ssh.Session,
 	args []string,
@@ -41,19 +40,19 @@ func RunCommand(
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		logger.Error("failed to get stdin pipe", "err", err)
+		slog.Error("failed to get stdin pipe", "err", err)
 		return 1
 	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.Error("failed to get stdout pipe", "err", err)
+		slog.Error("failed to get stdout pipe", "err", err)
 		return 1
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		logger.Error("failed to get stderr pipe", "err", err)
+		slog.Error("failed to get stderr pipe", "err", err)
 		return 1
 	}
 
@@ -61,7 +60,7 @@ func RunCommand(
 	wg.Add(2)
 
 	if err = cmd.Start(); err != nil {
-		logger.Error("failed to start command", "err", err)
+		slog.Error("failed to start command", "err", err)
 		return 1
 	}
 
@@ -69,7 +68,7 @@ func RunCommand(
 		defer stdin.Close()
 
 		if _, stdinErr := io.Copy(stdin, session); stdinErr != nil {
-			logger.Error("failed to write session to stdin", "err", err)
+			slog.Error("failed to write session to stdin", "err", err)
 		}
 	}()
 
@@ -77,7 +76,7 @@ func RunCommand(
 		defer wg.Done()
 
 		if _, stdoutErr := io.Copy(session, stdout); stdoutErr != nil {
-			logger.Error("failed to write stdout to session", "err", err)
+			slog.Error("failed to write stdout to session", "err", err)
 		}
 	}()
 
@@ -85,7 +84,7 @@ func RunCommand(
 		defer wg.Done()
 
 		if _, stderrErr := io.Copy(session.Stderr(), stderr); stderrErr != nil {
-			logger.Error("failed to write stderr to session", "err", err)
+			slog.Error("failed to write stderr to session", "err", err)
 		}
 	}()
 
@@ -93,7 +92,8 @@ func RunCommand(
 
 	err = cmd.Wait()
 	if err != nil {
-		logger.Error("failed to wait for command exit", "err", err)
+		slog.Error("failed to wait for command exit", "err", err)
+		return 1
 	}
 
 	if err == nil {
@@ -108,13 +108,13 @@ func RunCommand(
 	return exitErr.ProcessState.ExitCode()
 }
 
-func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*Repo, error) {
+func EnsureRepo(baseFS billy.Filesystem, base, path string) (*Repo, error) {
 	info, err := baseFS.Stat(path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		if err := baseFS.MkdirAll(path, 0o700); err != nil {
 			return nil, fmt.Errorf("cant create directory: %s err: %w", path, err)
 		}
-		logger.Debug("directory created", "path", path)
+		slog.Debug("directory created", "path", path)
 	}
 	fs, err := baseFS.Chroot(path)
 	if err != nil {
@@ -122,14 +122,14 @@ func EnsureRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string)
 	}
 	repoFS := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
 	if info == nil {
-		logger.Debug("init repo", "path", path)
+		slog.Debug("init repo", "path", path)
 		repo, err := git.Init(repoFS, nil)
 		if err != nil {
 			return nil, fmt.Errorf("cant init git: %w", err)
 		}
 		return &Repo{repo}, nil
 	}
-	logger.Debug("open repo", "path", path)
+	slog.Debug("open repo", "path", path)
 	repo, err := git.Open(repoFS, osfs.New(base))
 	if err != nil {
 		return nil, fmt.Errorf("cant open git: %w", err)
@@ -147,23 +147,24 @@ func ListRepos(base string) ([]model.Repository, error) {
 	if !info.IsDir() {
 		return repos, fmt.Errorf("%s is not a directory", base)
 	}
-	entries, err := filepath.Glob(base + "/*/*")
+	entries, err := filepath.Glob(base + "/*/*.git")
 	if err != nil {
 		return repos, fmt.Errorf("cant read path: %s err: %s", base, err)
 	}
 	for _, e := range entries {
+		paths := strings.Split(strings.TrimPrefix(e, base), "/")
 		repos = append(repos, model.Repository{
-			User: &model.User{Login: "admin"},
-			Path: strings.TrimPrefix(e, base),
+			User: &model.User{User: paths[1]},
+			Path: paths[2],
 		})
 	}
 	return repos, nil
 }
 
-func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (*Repo, error) {
+func OpenRepo(baseFS billy.Filesystem, base, path string) (*Repo, error) {
 	_, err := baseFS.Stat(path)
 	if err != nil {
-		logger.Debug("cant find path", "path", path, "err", err)
+		slog.Debug("cant find path", "path", path, "err", err)
 		return nil, fmt.Errorf("cant find path %w %s", err, path)
 	}
 	fs, err := baseFS.Chroot(path)
@@ -171,7 +172,7 @@ func OpenRepo(logger *slog.Logger, baseFS billy.Filesystem, base, path string) (
 		return nil, fmt.Errorf("cant chroot to path: %s err: %w", path, err)
 	}
 	repoFS := filesystem.NewStorage(fs, cache.NewObjectLRUDefault())
-	logger.Debug("open repo", "path", path)
+	slog.Debug("open repo", "path", path)
 	repo, err := git.Open(repoFS, osfs.New(base))
 	if err != nil {
 		return nil, fmt.Errorf("cant open git: %w", err)
