@@ -40,16 +40,12 @@
 
 #### Install
 
-Download binary from [ release page ](https://github.com/roman-kiselenko/smolgit/releases).
-
-#### Build
-
-Build from source by cloning repository and run `make build` to build the binary
-
-#### Run
+1. Download binary from [ release page ](https://github.com/roman-kiselenko/smolgit/releases).
+1. Generate default `config.yaml` file with command `./smolgit config > config.yaml`.
+1. Run `./smolgit`
 
 ```shell
-$> ./bin/smolgit
+$> ./smolgit
 10:08AM INF set loglevel level=DEBUG
 10:08AM INF version version=main-a4f6438
 10:08AM INF initialize web server addr=:3080
