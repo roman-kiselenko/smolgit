@@ -17,7 +17,3 @@ builds:
     goarm:
       - 6
       - 7
-    ldflags:
-      # use commit date instead of current date as main.date
-      # only needed if you actually use those things in your main package, otherwise can be ignored.
-      - -s -w -X main.version={{.Version}}

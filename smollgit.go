@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	Version    = "dev"
+	version    = "dev"
 	configPath = flag.String("config", "./config.yaml", "path to config")
 )
 
@@ -32,7 +32,7 @@ func main() {
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
 	exitchnl := make(chan int)
-	app, err := cmd.New(Version, configPath, exitchnl, sigchnl)
+	app, err := cmd.New(version, configPath, exitchnl, sigchnl)
 	if err != nil {
 		log.Fatalf("failed to init app: %s", err)
 	}

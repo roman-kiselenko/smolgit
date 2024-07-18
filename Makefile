@@ -16,7 +16,7 @@ all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smolgit .
+	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/smolgit .
 
 ## Config:
 config: ## Generate default config
