@@ -11,7 +11,6 @@
   - [Install](#install)
   - [Run](#run)
   - [Config](#config)
-  - [Docker](#docker)
 - [Prerequisites](#prerequisites)
 - [Built with](#built-with)
 - [Contribution](#contribution)
@@ -41,7 +40,7 @@
 
 #### Install
 
-Download binary from release page.
+Download binary from [ release page ](https://github.com/roman-kiselenko/smolgit/releases).
 
 #### Build
 
@@ -118,10 +117,6 @@ Usage of ./bin/smolgit:
         path to config (default "./config.yaml")
 ```
 
-#### Docker
-
-TBD
-
 ### Prerequisites
 
 - git
@@ -132,6 +127,7 @@ TBD
 
 - [golang](https://go.dev/)
 - [gin](https://github.com/gin-gonic/gin)
+- [go-git](https://github.com/go-git/go-git)
 - [pico](https://picocss.com/docs)
 - [gossh](https://github.com/gliderlabs/ssh)
 
