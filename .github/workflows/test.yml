@@ -15,5 +15,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v1
 
+      - name: Build
+        run: make build
+
       - name: Test
         run: bats ./test/test.bats
