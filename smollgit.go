@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"smolgit/cmd"
 	"smolgit/pkg/config"
@@ -27,11 +29,16 @@ func main() {
 		fmt.Print(string(cfg))
 		os.Exit(0)
 	}
-	app, err := cmd.New(Version, configPath)
+	sigchnl := make(chan os.Signal, 1)
+	signal.Notify(sigchnl, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+	exitchnl := make(chan int)
+	app, err := cmd.New(Version, configPath, exitchnl, sigchnl)
 	if err != nil {
 		log.Fatalf("failed to init app: %s", err)
 	}
 	if err := app.Run(); err != nil {
 		log.Fatalf("failed to start app: %s", err)
 	}
+	exitcode := <-exitchnl
+	os.Exit(exitcode)
 }

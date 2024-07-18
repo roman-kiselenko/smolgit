@@ -16,15 +16,19 @@ all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	@$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smolgit .
+	$(GOCMD) build -ldflags "-X main.Version=$(BRANCH)-$(HASH)" -o bin/smolgit .
+
+## Config:
+config: ## Generate default config
+	./bin/smolgit config > ./config.yaml
 
 ## Clean:
 clean: ## Remove build related file
 	@-rm -fr ./bin
 
 ## Run:
-run: clean build ## Run the smolgit `make run`
-	@./bin/smolgit $(ARGS)
+run: clean build config ## Run the smolgit `make run`
+	./bin/smolgit $(ARGS)
 
 ## Test:
 test: ## Run the tests of the smolgit

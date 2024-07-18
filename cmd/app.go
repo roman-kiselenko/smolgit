@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -24,11 +25,13 @@ var (
 )
 
 type App struct {
-	Config *config.Config
+	Config   *config.Config
+	signchnl chan (os.Signal)
+	exitSig  chan (int)
 }
 
-func New(version string, configPath *string) (*App, error) {
-	app := &App{}
+func New(version string, configPath *string, exitchnl chan (int), signchnl chan (os.Signal)) (*App, error) {
+	app := &App{exitSig: exitchnl, signchnl: signchnl}
 	f := file.Provider(*configPath)
 	cfg.Version = version
 	k = koanf.New(".")
@@ -44,39 +47,18 @@ func New(version string, configPath *string) (*App, error) {
 }
 
 func (a *App) Run() error {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	router.Use(gin.Recovery())
 	logger.Info("version", "version", a.Config.Version)
-	if cfg.ServerAuthEnabled {
-		logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
-		accounts := gin.Accounts{}
-		for _, a := range cfg.ServerAuthAccounts {
-			accounts[a["login"]] = a["password"]
+
+	if !a.Config.ServerDisabled {
+		if err := a.initWebServer(); err != nil {
+			return fmt.Errorf("cant run web server %w", err)
 		}
-		router.Use(gin.BasicAuth(accounts))
 	}
 
-	r, err := route.New(router, a.Config)
-	if err != nil {
-		logger.Error("cant create routes", "error", err)
-		return err
-	}
-
-	router.GET("/", r.Index)
-	router.GET("/css/pico.min.css", r.ExternalStyle)
-	router.GET("/css/style.css", r.Style)
-	router.GET("/repo/log/:user/:path", r.Log)
-	router.GET("/repo/files/:user/:path", r.Files)
-	router.GET("/repo/refs/:user/:path", r.Refs)
-
-	addr := a.Config.ServerAddr
-
-	logger.Info("initialize ssh server", "addr", addr)
+	logger.Info("initialize ssh server", "addr", a.Config.SSHAddr)
 	sshServer, err := ssh.New(a.Config)
 	if err != nil {
-		logger.Error("cant run ssh server", "error", err)
-		return err
+		return fmt.Errorf("cant run ssh server %w", err)
 	}
 
 	go func() {
@@ -86,8 +68,14 @@ func (a *App) Run() error {
 		}
 	}()
 
-	logger.Info("start server", "brand", a.Config.ServerBrand, "address", addr)
-	return router.Run(addr)
+	go func() {
+		code := <-a.signchnl
+		logger.Info("os signal received", "signal", code)
+		sshServer.Close()
+		a.exitSig <- 0
+	}()
+
+	return nil
 }
 
 func initLogger() *slog.Logger {
@@ -115,4 +103,40 @@ func initLogger() *slog.Logger {
 	logger.Info("set loglevel", "level", level)
 
 	return logger
+}
+
+func (a *App) initWebServer() error {
+	logger.Info("initialize web server", "addr", a.Config.ServerAddr)
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(gin.Recovery())
+	if cfg.ServerAuthEnabled {
+		logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
+		accounts := gin.Accounts{}
+		for _, a := range cfg.ServerAuthAccounts {
+			accounts[a["login"]] = a["password"]
+		}
+		router.Use(gin.BasicAuth(accounts))
+	}
+
+	r, err := route.New(router, a.Config)
+	if err != nil {
+		return err
+	}
+
+	router.GET("/", r.Index)
+	router.GET("/css/pico.min.css", r.ExternalStyle)
+	router.GET("/css/style.css", r.Style)
+	router.GET("/repo/log/:user/:path", r.Log)
+	router.GET("/repo/files/:user/:path", r.Files)
+	router.GET("/repo/refs/:user/:path", r.Refs)
+
+	addr := a.Config.ServerAddr
+	go func() {
+		logger.Info("start server", "brand", a.Config.ServerBrand, "address", addr)
+		if err := router.Run(addr); err != nil {
+			logger.Error("cant run ssh server", "error", err)
+		}
+	}()
+	return nil
 }

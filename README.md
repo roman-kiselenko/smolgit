@@ -116,9 +116,7 @@ TBD
 
 ### Prerequisites
 
-- go (>= 1.22+)
 - git
-
 
 ## Built with
 

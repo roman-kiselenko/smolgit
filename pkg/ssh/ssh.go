@@ -85,6 +85,10 @@ func (srv *Server) ListenAndServe() error {
 	return srv.ssh.ListenAndServe()
 }
 
+func (srv *Server) Close() error {
+	return srv.ssh.Close()
+}
+
 func (srv *Server) cmdRepo(s ssh.Session, cmd []string) int {
 	if len(cmd) != 2 {
 		_, _ = io.WriteString(s.Stderr(), "Missing repo name argument\r\n")
