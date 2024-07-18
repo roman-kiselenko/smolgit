@@ -14,7 +14,6 @@
 - [Prerequisites](#prerequisites)
 - [Built with](#built-with)
 - [Contribution](#contribution)
-- [Donations](#donations)
 <!-- /toc -->
 
 ### Motivation
@@ -29,10 +28,10 @@
 ### Preview
 
 <p align="center">
-   <img src="assets/web_1.png" alt="screenshot" width="500" />
+   <img src="assets/web_2.png" alt="screenshot" width="700" />
 </p>
 <p align="center">
-   <img src="assets/web_2.png" alt="screenshot" width="500" />
+   <img src="assets/web_1.png" alt="screenshot" width="700" />
 </p>
 
 
@@ -42,6 +41,7 @@
 
 1. Download binary from [ release page ](https://github.com/roman-kiselenko/smolgit/releases).
 1. Generate default `config.yaml` file with command `./smolgit config > config.yaml`.
+    - Use [`yq`](https://github.com/mikefarah/yq) for inline changes `./smolgit config | yq '.server.disabled = true' > config.yaml`
 1. Run `./smolgit`
 
 ```shell
@@ -107,8 +107,8 @@ git:
 cli options:
 
 ```shell
-$> ./bin/smolgit --help
-Usage of ./bin/smolgit:
+$> ./smolgit --help
+Usage of ./smolgit:
   -config string
         path to config (default "./config.yaml")
 ```
@@ -117,7 +117,7 @@ Usage of ./bin/smolgit:
 
 - git
 
-## Built with
+### Built with
 
 :heart:
 
@@ -127,6 +127,6 @@ Usage of ./bin/smolgit:
 - [pico](https://picocss.com/docs)
 - [gossh](https://github.com/gliderlabs/ssh)
 
-## Contribution
+### Contribution
 
 Contributions are more than welcome! Thank you!
