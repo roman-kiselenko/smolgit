@@ -1,7 +1,7 @@
 
-**smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. Small memory footprint, one binary to go. No fancy pancy javascript frameworks.
+<img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="100" height="100" />
 
-<img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="200" height="200" />
+**smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. Small memory footprint, one binary to go. No fancy pancy javascript frameworks.
 
 <!-- toc -->
 - [Motivation](#motivation)
