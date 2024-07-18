@@ -71,7 +71,9 @@ func (a *App) Run() error {
 	go func() {
 		code := <-a.signchnl
 		logger.Info("os signal received", "signal", code)
-		sshServer.Close()
+		if err := sshServer.Close(); err != nil {
+			logger.Error("cant stop ssh server", "error", err)
+		}
 		a.exitSig <- 0
 	}()
 

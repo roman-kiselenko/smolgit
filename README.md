@@ -1,14 +1,12 @@
-<div style="text-align:center">
-   <img src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="200" />
-   <br/>
-   <small><a href="https://en.wiktionary.org/wiki/smol#/media/File:Kitten_(06)_by_Ron.jpg">A smol cat.</a></small>
-</div>
 
 **smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. Small memory footprint, one binary to go. No fancy pancy javascript frameworks.
+
+<img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="200" height="200" />
 
 <!-- toc -->
 - [Motivation](#motivation)
 - [Usage](#usage)
+  - [Preview](#preview)
 - [Getting Started](#getting-started)
   - [Install](#install)
   - [Run](#run)
@@ -29,6 +27,15 @@
 1. **repository visualization**: Browse files, view logs, explore the commit and branch and tag lists.
 1. **user management**: Simple user management, add users with `ssh-keys` to `config.yaml`.
 
+### Preview
+
+<p align="center">
+   <img src="assets/web_1.png" alt="screenshot" width="500" />
+</p>
+<p align="center">
+   <img src="assets/web_2.png" alt="screenshot" width="500" />
+</p>
+
 
 ### Getting Started
 
@@ -44,11 +51,12 @@ Build from source by cloning repository and run `make build` to build the binary
 
 ```shell
 $> ./bin/smolgit
-4:37PM INF set loglevel level=DEBUG
-4:37PM INF version version=main-c77299f
-4:37PM INF initialize ssh server addr=:3080
-4:37PM INF start server brand=smolgit address=:3080
-4:37PM INF starting SSH server addr=:3081
+10:08AM INF set loglevel level=DEBUG
+10:08AM INF version version=main-a4f6438
+10:08AM INF initialize web server addr=:3080
+10:08AM INF initialize ssh server addr=:3081
+10:08AM INF start server brand=smolgit address=:3080
+10:08AM INF starting SSH server addr=:3081
 ```
 
 #### Config
