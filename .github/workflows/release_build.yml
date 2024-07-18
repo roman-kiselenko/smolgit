@@ -23,9 +23,10 @@ jobs:
         id: go
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@master
+        uses: goreleaser/goreleaser-action@v6
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          version: latest
-          args: release --rm-dist
+          version: '~> v2'
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
