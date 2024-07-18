@@ -31,7 +31,7 @@ func main() {
 	}
 	sigchnl := make(chan os.Signal, 1)
 	signal.Notify(sigchnl, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
-	exitchnl := make(chan int)
+	exitchnl := make(chan os.Signal)
 	app, err := cmd.New(version, configPath, exitchnl, sigchnl)
 	if err != nil {
 		log.Fatalf("failed to init app: %s", err)
@@ -39,6 +39,5 @@ func main() {
 	if err := app.Run(); err != nil {
 		log.Fatalf("failed to start app: %s", err)
 	}
-	exitcode := <-exitchnl
-	os.Exit(exitcode)
+	<-exitchnl
 }

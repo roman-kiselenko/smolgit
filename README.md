@@ -1,10 +1,10 @@
 
-<img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="150" height="100" />
+<a href="https://en.wiktionary.org/wiki/smol"><img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="150" height="100" /></a>
 
-**smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. Small memory footprint, one binary to go. No fancy pancy javascript frameworks.
+**smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. It's perfect for those who value simplicity and efficiency in their workflow. Small memory footprint, one binary to go.
 
 <!-- toc -->
-- [Motivation](#motivation)
+- [Features](#features)
 - [Usage](#usage)
   - [Preview](#preview)
 - [Getting Started](#getting-started)
@@ -16,14 +16,14 @@
 - [Contribution](#contribution)
 <!-- /toc -->
 
-### Motivation
-**smolgit** is perfect for those who value simplicity and efficiency in their workflow. The goal is to eliminate the bloat and offer a tool that is easy to set up, use, and maintain.
+### Features
 
-### Usage
-
-1. **git operations**: Easily perform `pull`, `push`, `clone` and `fetch` operations.
-1. **repository visualization**: Browse files, view logs, explore the commit and branch and tag lists.
-1. **user management**: Simple user management, add users with `ssh-keys` to `config.yaml`.
+1. **git operations** - easily perform `pull`, `push`, `clone` and `fetch` operations.
+1. **repository visualization** - browse files, view logs, explore the commit, branch and tag lists.
+1. **user management** - simple user management, add users with `ssh-keys` to `config.yaml`.
+1. **permissions** - assign persmissions to user.
+1. **ligh-dark** - web theme based on your system settings.
+1. **basic-auth** - web basic auth middleware.
 
 ### Preview
 

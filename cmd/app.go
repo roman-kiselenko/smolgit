@@ -27,10 +27,10 @@ var (
 type App struct {
 	Config   *config.Config
 	signchnl chan (os.Signal)
-	exitSig  chan (int)
+	exitSig  chan (os.Signal)
 }
 
-func New(version string, configPath *string, exitchnl chan (int), signchnl chan (os.Signal)) (*App, error) {
+func New(version string, configPath *string, exitchnl, signchnl chan (os.Signal)) (*App, error) {
 	app := &App{exitSig: exitchnl, signchnl: signchnl}
 	f := file.Provider(*configPath)
 	cfg.Version = version
@@ -74,7 +74,7 @@ func (a *App) Run() error {
 		if err := sshServer.Close(); err != nil {
 			logger.Error("cant stop ssh server", "error", err)
 		}
-		a.exitSig <- 0
+		a.exitSig <- code
 	}()
 
 	return nil
@@ -120,7 +120,6 @@ func (a *App) initWebServer() error {
 		}
 		router.Use(gin.BasicAuth(accounts))
 	}
-
 	r, err := route.New(router, a.Config)
 	if err != nil {
 		return err
