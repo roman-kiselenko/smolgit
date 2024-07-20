@@ -6,6 +6,9 @@
 }
 
 @test "can generate config" {
+    export config=./config.yaml
     run ./bin/smolgit config
     [ "${lines[0]}" = "log:" ]
+    run ./bin/smolgit config > "$config"
+    test -f "$config"
 }

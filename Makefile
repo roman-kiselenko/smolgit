@@ -34,6 +34,9 @@ run: clean build config ## Run the smolgit `make run`
 test: ## Run the tests of the smolgit
 	$(GOTEST) -v -race ./...
 
+integration-test: build ## Run the bats tests of the smolgit
+	@bats ./test/test.bats
+
 ## Help:
 help: ## Show this help.
 	@echo ''
