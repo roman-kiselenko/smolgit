@@ -126,6 +126,12 @@ Usage of ./smolgit:
 - [pico](https://picocss.com/docs)
 - [gossh](https://github.com/gliderlabs/ssh)
 
+### Local development
+
+- [golang](https://go.dev/)
+- [yq](https://mikefarah.gitbook.io/yq)
+- [bats](https://bats-core.readthedocs.io/en/stable/)
+
 ### Contribution
 
 Contributions are more than welcome! Thank you!
