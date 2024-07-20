@@ -5,8 +5,7 @@
 
 <!-- toc -->
 - [Features](#features)
-- [Usage](#usage)
-  - [Preview](#preview)
+- [Preview](#preview)
 - [Getting Started](#getting-started)
   - [Install](#install)
   - [Run](#run)
