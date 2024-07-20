@@ -28,10 +28,10 @@
 ### Preview
 
 <p align="center">
-   <img src="assets/web_2.png" alt="screenshot" width="700" />
+   <img src="assets/web_1.png" alt="screenshot" width="700" />
 </p>
 <p align="center">
-   <img src="assets/web_1.png" alt="screenshot" width="700" />
+   <img src="assets/web_2.png" alt="screenshot" width="700" />
 </p>
 
 

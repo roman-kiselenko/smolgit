@@ -15,5 +15,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v1
 
+      - name: Config
+        run: make config
+
       - name: Test
         run: make integration-test

@@ -18,17 +18,16 @@ all: help
 build: ## Build all the binaries and put the output in bin/
 	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/$(PROJECT_NAME) .
 
-## Config:
-config: ## Generate default config
-	./bin/$(PROJECT_NAME) config > ./config.yaml
-
 ## Clean:
 clean: ## Remove build related file
 	@-rm -fr ./bin
 
 ## Run:
-run: clean build config ## Run the smolgit `make run`
+run: clean build ## Run the smolgit `make run`
 	./bin/$(PROJECT_NAME) $(ARGS)
+
+config: ## Generate default config
+	./bin/$(PROJECT_NAME) config > ./config.yaml
 
 ## Test:
 test: ## Run the tests of the smolgit
