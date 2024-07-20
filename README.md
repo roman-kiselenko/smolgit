@@ -10,6 +10,7 @@
   - [Install](#install)
   - [Run](#run)
   - [Config](#config)
+  - [Docker](#docker)
 - [Prerequisites](#prerequisites)
 - [Built with](#built-with)
 - [Contribution](#contribution)
@@ -110,6 +111,25 @@ $> ./smolgit --help
 Usage of ./smolgit:
   -config string
         path to config (default "./config.yaml")
+```
+
+#### Docker
+
+In order to run `smolgit` in docker there is the [`Dockerfile`](/Dockerfile).
+
+1. Build image `make build-docker`
+1. Generate `config.yaml` file `make config-docker`, it'll create `config.yaml` in the current directory and mount it for docker.
+1. Run `smolgit` in docker:
+
+```shell
+$> make run-docker
+docker run -it -p 3080:3080 -p 3081:3081 -v /path-to-smolgit-project/smolgit/:/etc/smolgit smolgit
+3:53PM INF set loglevel level=DEBUG
+3:53PM INF version version=dev
+3:53PM INF initialize web server addr=:3080
+3:53PM INF initialize ssh server addr=:3081
+3:53PM INF start server brand=smolgit address=:3080
+3:53PM INF starting SSH server addr=:3081
 ```
 
 ### Prerequisites

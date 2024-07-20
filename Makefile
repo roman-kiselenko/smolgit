@@ -18,6 +18,9 @@ all: help
 build: ## Build all the binaries and put the output in bin/
 	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/$(PROJECT_NAME) .
 
+build-docker: ## Build an image
+	docker build -t $(PROJECT_NAME) .
+
 ## Clean:
 clean: ## Remove build related file
 	@-rm -fr ./bin
@@ -25,6 +28,12 @@ clean: ## Remove build related file
 ## Run:
 run: clean build ## Run the smolgit `make run`
 	./bin/$(PROJECT_NAME) $(ARGS)
+
+run-docker: ## Run smolgit in the container
+	docker run -it -p 3080:3080 -p 3081:3081 -v $(PWD)/:/etc/smolgit $(PROJECT_NAME)
+
+config-docker: ## Generate smolgit config
+	docker run -it $(PROJECT_NAME) config > config.yaml
 
 config: ## Generate default config
 	./bin/$(PROJECT_NAME) config > ./config.yaml
