@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Install deps
-        run: snap install yq --channel=v3/stable
+        run: sudo snap install yq --channel=v3/stable
 
       - name: Build
         run: make build
