@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"log/slog"
+	"regexp"
 	"strings"
 
 	"smolgit/pkg/config"
@@ -112,8 +113,11 @@ func (srv *Server) cmdRepo(s ssh.Session, cmd []string) int {
 
 	// TODO better permissions check
 	if user.Permissions != "*" {
-		if !strings.HasPrefix(repoName[1:], userName) {
-			slog.Error("wrong repo prefix", "repoName", repoName, "user", user)
+		r, _ := regexp.Compile(user.Permissions)
+		repoNamespace := strings.Split(repoName, "/")
+		ns := strings.Join(repoNamespace[1:len(repoNamespace)-1], "")
+		if !r.MatchString(ns) {
+			slog.Error("wrong repo prefix", "repoName", repoName, "ns", ns, "userName", userName, "permission", user.Permissions)
 			_, _ = io.WriteString(s.Stderr(), "Permission denied\r\n")
 			return 1
 		}
