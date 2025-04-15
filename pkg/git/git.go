@@ -105,7 +105,7 @@ func RunCommand(
 		return 1
 	}
 
-	return exitErr.ProcessState.ExitCode()
+	return exitErr.ProcessState.ExitCode() //nolint
 }
 
 func EnsureRepo(baseFS billy.Filesystem, base, path string) (*Repo, error) {

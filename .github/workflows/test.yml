@@ -3,7 +3,7 @@ name: "CI"
 on: [push, pull_request]
 jobs:
   build:
-    name: Build and Test
+    name: Build Lint Test
     runs-on: ubuntu-latest
     steps:
 
@@ -20,6 +20,9 @@ jobs:
 
       - name: Build
         run: make build
+
+      - name: Lint
+        run: make lint
 
       - name: Config
         run: make config

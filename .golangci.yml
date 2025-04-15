@@ -1,7 +1,7 @@
+version: "2"
 run:
-  skip-dirs:
-    - (^|/)bin($|/)
-    - (^|/)tmp($|/)
+  allow-parallel-runners: true
+  relative-path-mode: wd
 linters:
   enable:
     - asciicheck
@@ -14,67 +14,89 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - revive
     - gosec
     - lll
     - misspell
     - nakedret
     - noctx
     - prealloc
+    - revive
     - rowserrcheck
-    - exportloopref
-    - stylecheck
+    - staticcheck
     - unconvert
     - unparam
     - whitespace
+  settings:
+    funlen:
+      lines: 168
+      statements: 50
+    gocritic:
+      disabled-checks:
+        - singleCaseSwitch
+    lll:
+      line-length: 193
+      tab-width: 1
+    staticcheck:
+      checks:
+        - -S1023
+        - all
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - bodyclose
+          - dupl
+          - funlen
+          - gochecknoinits
+          - gocognit
+          - goconst
+          - gocyclo
+          - gosec
+          - lll
+          - maligned
+          - noctx
+          - revive
+          - scopelint
+          - staticcheck
+        path: _test.go
+      - linters:
+          - bodyclose
+          - dupl
+          - funlen
+          - gochecknoinits
+          - gocognit
+          - goconst
+          - gocyclo
+          - lll
+          - maligned
+          - noctx
+          - revive
+          - scopelint
+          - staticcheck
+        path: _mock.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+output:
+  formats:
+    tab:
+      path: stdout
+      colors: true
+formatters:
+  enable:
     - gofumpt
-linters-settings:
-  lll:
-    line-length: 193
-    tab-width: 1
-  funlen:
-    lines: 168
-    statements: 50
-  gocritic:
-    disabled-checks:
-      - singleCaseSwitch
-  golint:
-    min-confidence: 0.6
-  gosimple:
-    checks: ["all","-S1023"]
-  gofumpt:
-    module-path: smolgit
-    lang-version: "1.22.4"
-issues:
-  exclude-rules:
-    - path: _test.go
-      linters:
-        - funlen
-        - maligned
-        - noctx
-        - scopelint
-        - bodyclose
-        - lll
-        - goconst
-        - gocognit
-        - gocyclo
-        - gochecknoinits
-        - dupl
-        - staticcheck
-        - revive
-        - gosec
-    - path: _mock.go
-      linters:
-        - funlen
-        - maligned
-        - noctx
-        - scopelint
-        - bodyclose
-        - lll
-        - goconst
-        - gocognit
-        - gocyclo
-        - gochecknoinits
-        - dupl
-        - staticcheck
-        - revive
+  settings:
+    gofumpt:
+      module-path: smolgit
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
