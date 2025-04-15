@@ -8,9 +8,10 @@ WHITE  := $(shell tput -Txterm setaf 7)
 CYAN   := $(shell tput -Txterm setaf 6)
 RESET  := $(shell tput -Txterm sgr0)
 
-.PHONY: all test build clean run
-
 PROJECT_NAME := smolgit
+LINTER_BIN ?= golangci-lint
+
+.PHONY: all test build clean run lint /bin/$(LINTER_BIN)
 
 all: help
 
@@ -21,9 +22,16 @@ build: ## Build all the binaries and put the output in bin/
 build-docker: ## Build an image
 	docker build -t $(PROJECT_NAME) .
 
+bin/$(LINTER_BIN):
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./bin v2.1.1
+
 ## Clean:
 clean: ## Remove build related file
 	@-rm -fr ./bin
+
+## Lint:
+lint: ./bin/$(LINTER_BIN) ## Lint sources with golangci-lint
+	./bin/$(LINTER_BIN) run
 
 ## Run:
 run: clean build ## Run the smolgit `make run`
