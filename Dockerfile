@@ -1,4 +1,5 @@
-FROM golang:1.23-alpine3.20 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine3.20 AS builder
+ARG TARGETOS TARGETARCH
 
 RUN mkdir /app && mkdir -p /usr/local/src/smolgit
 WORKDIR /usr/local/src/smolgit
@@ -7,7 +8,7 @@ ADD ./go.mod ./go.sum ./
 RUN go mod download
 ADD . ./
 
-RUN go build -v -o /build/smolgit
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -o /build/smolgit
 
 FROM alpine/git:2.45.2 AS runner
 
