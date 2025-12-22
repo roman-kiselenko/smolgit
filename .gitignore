@@ -2,3 +2,8 @@ bin/
 tmp/
 .DS_Store
 config.yaml
+frontend/node_modules
+frontend/dist
+.crush*
+crush.json
+dist

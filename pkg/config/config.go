@@ -10,24 +10,42 @@ import (
 	"smolgit/pkg/model"
 )
 
-type Config struct {
-	LogColor           bool                     `koanf:"log.color"`
-	LogJSON            bool                     `koanf:"log.json"`
-	LogLevel           string                   `koanf:"log.level"`
-	ServerDisabled     bool                     `koanf:"server.disabled"`
-	ServerAddr         string                   `koanf:"server.addr"`
-	ServerAuthEnabled  bool                     `koanf:"server.auth.enabled"`
-	ServerAuthAccounts []map[string]string      `koanf:"server.auth.accounts"`
-	ServerBrand        string                   `koanf:"server.brand"`
-	SSHAddr            string                   `koanf:"ssh.addr"`
-	GitPath            string                   `koanf:"git.path"`
-	GitBase            string                   `koanf:"git.base"`
-	GitUsers           []map[string]interface{} `koanf:"git.users"`
-	Version            string
+func (c *Config) Validate() error {
+	if c.ServerAddr == "" {
+		return errors.New("ServerAddr is empty")
+	}
+	if c.ServerJWTKey == "" {
+		return errors.New("ServerJWTKey is empty")
+	}
+	return nil
 }
 
-func (c *Config) Validate() error {
-	// TODO
+type Config struct {
+	LogColor            bool                     `koanf:"log.color"`
+	LogJSON             bool                     `koanf:"log.json"`
+	LogLevel            string                   `koanf:"log.level"`
+	ServerDisabled      bool                     `koanf:"server.disabled"`
+	ServerJWTKey        string                   `koanf:"server.jwt_key"`
+	ServiceAuthDisabled bool                     `koanf:"server.auth_disabled"`
+	ServerAddr          string                   `koanf:"server.addr"`
+	ServerAuthAccounts  []map[string]string      `koanf:"server.auth.accounts"`
+	ServerBrand         string                   `koanf:"server.brand"`
+	SSHAddr             string                   `koanf:"ssh.addr"`
+	GitPath             string                   `koanf:"git.path"`
+	GitBase             string                   `koanf:"git.base"`
+	GitUsers            []map[string]interface{} `koanf:"git.users"`
+	Version             string
+}
+
+// Open chat with model
+
+func (c *Config) Prepare() error {
+	if c.GitPath == "" {
+		c.GitPath = "/usr/local/bin/git"
+	}
+	if c.GitBase == "" {
+		c.GitBase = "/Users/roman.kiselenko/Documents/dev/opensource/smolgit"
+	}
 	return nil
 }
 

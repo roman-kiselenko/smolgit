@@ -1,0 +1,18 @@
+import { DynamicResourceTable } from '@/components/resources/DynamicResourceTable';
+import { useConfigmapsState } from '@/store/resources';
+import columns from '@/components/resources/Configuration/columns/ConfigMaps';
+
+const ConfigMaps = () => {
+  const cm = useConfigmapsState();
+  return (
+    <DynamicResourceTable
+      kind="ConfigMap"
+      group=""
+      columns={columns}
+      state={() => cm.get() as Map<string, any>}
+      setState={cm.set}
+    />
+  );
+};
+
+export default ConfigMaps;

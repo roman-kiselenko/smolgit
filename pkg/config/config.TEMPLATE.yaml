@@ -6,17 +6,10 @@ log:
   # Log level (INFO, DEBUG, TRACE, WARN)
   level: DEBUG
 server:
+  jwt_key: "super-salt"
+  auth_disabled: false
   # Disable web server
   disabled: false
-  # Enable basic http auth
-  auth:
-    enabled: false
-    # Credentials for basic auth
-    accounts:
-      - login: user2
-        password: bar
-      - login: user1
-        password: foo
   # Web server address
   addr: ":3080"
   # Navbar brand string
@@ -32,12 +25,12 @@ git:
   base: "git@my-git-server.lan"
   users:
     # User name used for folder in git.path
-  - name: "bob"
-    # Permissions, wildcard or regex
-    # User to check access for other repositories
-    # '*' - access for all repositories
-    # 'admin' - access for admin's repositories
-    # '(admin|billy)' - access for admin's and billy's repositories
-    permissions: "*"
-    keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com
+    - name: "bob"
+      # Permissions, wildcard or regex
+      # User to check access for other repositories
+      # '*' - access for all repositories
+      # 'admin' - access for admin's repositories
+      # '(admin|billy)' - access for admin's and billy's repositories
+      permissions: "*"
+      keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com

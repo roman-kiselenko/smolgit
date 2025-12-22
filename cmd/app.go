@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"embed"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
@@ -46,11 +48,16 @@ func New(version string, configPath *string, exitchnl, signchnl chan (os.Signal)
 	return app, nil
 }
 
-func (a *App) Run() error {
+// func (a *App) Run(staticFiles embed.FS) error {
+// slog.Info("version", "version", a.Config.Version)
+//
+//	if err := a.initServer(staticFiles); err != nil {
+//		slog.Error("cant init server", "error", err)
+func (a *App) Run(staticFiles embed.FS) error {
 	logger.Info("version", "version", a.Config.Version)
 
 	if !a.Config.ServerDisabled {
-		if err := a.initWebServer(); err != nil {
+		if err := a.initWebServer(staticFiles); err != nil {
 			return fmt.Errorf("cant run web server %w", err)
 		}
 	}
@@ -107,30 +114,41 @@ func initLogger() *slog.Logger {
 	return logger
 }
 
-func (a *App) initWebServer() error {
+func (a *App) initWebServer(staticFiles embed.FS) error {
 	logger.Info("initialize web server", "addr", a.Config.ServerAddr)
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
-	if cfg.ServerAuthEnabled {
-		logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
-		accounts := gin.Accounts{}
-		for _, a := range cfg.ServerAuthAccounts {
-			accounts[a["login"]] = a["password"]
-		}
-		router.Use(gin.BasicAuth(accounts))
-	}
-	r, err := route.New(router, a.Config)
+	// if cfg.ServerAuthEnabled {
+	// 	logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
+	// 	accounts := gin.Accounts{}
+	// 	for _, a := range cfg.ServerAuthAccounts {
+	// 		accounts[a["login"]] = a["password"]
+	// 	}
+	// 	router.Use(gin.BasicAuth(accounts))
+	// }
+	_, err := route.New(router, a.Config)
 	if err != nil {
 		return err
 	}
 
-	router.GET("/", r.Index)
-	router.GET("/css/pico.min.css", r.ExternalStyle)
-	router.GET("/css/style.css", r.Style)
-	router.GET("/repo/log/:user/:path", r.Log)
-	router.GET("/repo/files/:user/:path", r.Files)
-	router.GET("/repo/refs/:user/:path", r.Refs)
+	router.NoRoute(func(c *gin.Context) {
+		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+
+		fileServer := http.FileServer(http.FS(staticFiles))
+		c.Request.URL.Path = "/dist" + c.Request.URL.Path
+		fileServer.ServeHTTP(c.Writer, c.Request)
+	})
+
+	// router.GET("/", r.Index)
+	// router.GET("/css/pico.min.css", r.ExternalStyle)
+	// router.GET("/css/style.css", r.Style)
+	// router.GET("/repo/log/:user/:path", r.Log)
+	// router.GET("/repo/files/:user/:path", r.Files)
+	// router.GET("/repo/refs/:user/:path", r.Refs)
 
 	addr := a.Config.ServerAddr
 	go func() {

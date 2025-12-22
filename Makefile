@@ -19,6 +19,10 @@ all: help
 build: ## Build all the binaries and put the output in bin/
 	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/$(PROJECT_NAME) .
 
+## Build frontend:
+build-frontend: ## Build frontend
+	cd frontend && pnpm build && cp -R dist ../
+
 build-docker: ## Build an image
 	docker build -t $(PROJECT_NAME) .
 
@@ -34,7 +38,7 @@ lint: ./bin/$(LINTER_BIN) ## Lint sources with golangci-lint
 	./bin/$(LINTER_BIN) run
 
 ## Run:
-run: clean build ## Run the smolgit `make run`
+run: clean build build-frontend ## Run the smolgit `make run`
 	./bin/$(PROJECT_NAME) $(ARGS)
 
 run-docker: ## Run smolgit in the container
