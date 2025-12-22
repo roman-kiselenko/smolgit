@@ -153,6 +153,15 @@ make test
 
 before pushing. Use the PR title format `[smolgit] <Title>`.
 
+## Commit Messages
+Follow Conventional Commits:
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `test`: Adding missing tests
+- Example: `feat(core): add authentication`
+
 ## Useful Commands
 
 ```sh
