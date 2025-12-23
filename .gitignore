@@ -7,3 +7,4 @@ frontend/dist
 .crush*
 crush.json
 dist
+agents.config.json
