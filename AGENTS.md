@@ -160,7 +160,8 @@ Follow Conventional Commits:
 - `docs`: Documentation only changes
 - `refactor`: A code change that neither fixes a bug nor adds a feature
 - `test`: Adding missing tests
-- Example: `feat(core): add authentication`
+- `coauth`: Co-authored changes (e.g., "Co-authored-by: Qwen3 <email>")
+- Example: `fix(core): format New function to pass gofumpt (coauth: Qwen3)`
 
 ## Useful Commands
 
