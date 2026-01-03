@@ -44,6 +44,14 @@ run: clean build build-frontend ## Run the smolgit `make run`
 run-docker: ## Run smolgit in the container
 	docker run -it -p 3080:3080 -p 3081:3081 -v $(PWD)/:/etc/smolgit $(PROJECT_NAME)
 
+## Run frontend:
+run-frontend: ## Run
+	cd frontend && pnpm dev
+
+## Run backend:
+run-backend: build ## Run
+	./bin/$(PROJECT_NAME)
+
 config-docker: ## Generate smolgit config
 	docker run -it $(PROJECT_NAME) config > config.yaml
 

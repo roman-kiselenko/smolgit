@@ -3,7 +3,6 @@ import { StartPage } from './components/pages/Start';
 import { SettingsPage } from '@/components/pages/Settings';
 import Layout from '@/components/Layout';
 import ErrorPage from '@/components/ErrorPage';
-// import { redirect } from 'react-router-dom';
 
 export const router = createBrowserRouter([
   {
@@ -20,7 +19,6 @@ export const router = createBrowserRouter([
     path: '/resource',
     element: <Layout />,
     children: [
- 
     ],
     errorElement: <ErrorPage />,
   },

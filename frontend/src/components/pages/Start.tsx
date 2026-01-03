@@ -2,8 +2,8 @@ import { useEffect, useCallback, useState } from 'react';
 import { Loader2, LogOut } from 'lucide-react';
 import { useloadingState } from '@/store/loader';
 import { DataTable } from '@/components/ui/DataTable';
-import columns from '@/components/pages/Start/Table/ColumnDef';
-import { useConfigsState, getConfigs } from '@/store/kubeconfigs';
+import columns from '@/components/pages/Repos/Table/ColumnDef';
+import { useReposState, getRepos } from '@/store/repositories';
 import { Input } from '@/components/ui/input';
 import { call } from '@/lib/api';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthProvider';
 
 export function StartPage() {
-  const configs = useConfigsState();
+  const repos = useReposState();
   const [searchQuery, setSearchQuery] = useState('');
   const loading = useloadingState();
   const { logout, AuthDisabled } = useAuth();
@@ -19,7 +19,7 @@ export function StartPage() {
   const fetchData = useCallback(async () => {
     try {
       await call<any[]>('ping');
-      await getConfigs(searchQuery);
+      await getRepos(searchQuery);
     } catch (error: any) {
       toast.error('Error! Cant ping server\n' + error.message);
     }
@@ -61,10 +61,10 @@ export function StartPage() {
           )}
           <DataTable
             menuDisabled={true}
-            kind={'configs'}
+            kind={'repos'}
             noResult={true}
             columns={columns as any}
-            data={configs.configs.get() as any}
+            data={repos.repos.get() as any}
           />
         </div>
       </div>

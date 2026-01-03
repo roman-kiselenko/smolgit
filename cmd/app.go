@@ -48,14 +48,8 @@ func New(version string, configPath *string, exitchnl, signchnl chan (os.Signal)
 	return app, nil
 }
 
-// func (a *App) Run(staticFiles embed.FS) error {
-// slog.Info("version", "version", a.Config.Version)
-//
-//	if err := a.initServer(staticFiles); err != nil {
-//		slog.Error("cant init server", "error", err)
 func (a *App) Run(staticFiles embed.FS) error {
 	logger.Info("version", "version", a.Config.Version)
-
 	if !a.Config.ServerDisabled {
 		if err := a.initWebServer(staticFiles); err != nil {
 			return fmt.Errorf("cant run web server %w", err)
@@ -119,19 +113,23 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
-	// if cfg.ServerAuthEnabled {
-	// 	logger.Info("web auth", "enabled", a.Config.ServerAuthEnabled)
-	// 	accounts := gin.Accounts{}
-	// 	for _, a := range cfg.ServerAuthAccounts {
-	// 		accounts[a["login"]] = a["password"]
-	// 	}
-	// 	router.Use(gin.BasicAuth(accounts))
-	// }
-	_, err := route.New(router, a.Config)
+	r, err := route.New(router, a.Config)
 	if err != nil {
 		return err
 	}
-
+	router.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"title": "Not Found"})
+	})
+	router.GET("/api/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+	router.GET("/api/auth_disabled", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": a.Config.ServiceAuthDisabled,
+		})
+	})
 	router.NoRoute(func(c *gin.Context) {
 		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
 			c.JSON(404, gin.H{"error": "not found"})
@@ -143,9 +141,7 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 		fileServer.ServeHTTP(c.Writer, c.Request)
 	})
 
-	// router.GET("/", r.Index)
-	// router.GET("/css/pico.min.css", r.ExternalStyle)
-	// router.GET("/css/style.css", r.Style)
+	router.GET("/api/repos", r.Repos)
 	// router.GET("/repo/log/:user/:path", r.Log)
 	// router.GET("/repo/files/:user/:path", r.Files)
 	// router.GET("/repo/refs/:user/:path", r.Refs)

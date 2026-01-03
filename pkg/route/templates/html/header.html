@@ -1,8 +1,0 @@
-{{ define "header"}}
-  <div class="grid repository-header">
-    <div><samp>{{ .GetFullPath | formatAsGit }}</samp></div>
-    <div><a href="/repo/log/{{ .GetFullPath }}">Log</a></div>
-    <div><a href="/repo/files/{{ .GetFullPath }}">Files</a></div>
-    <div><a href="/repo/refs/{{ .GetFullPath }}">Refs</a></div>
-  </div>
-{{ end }}
