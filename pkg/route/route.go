@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 
@@ -90,86 +92,54 @@ func (r *Route) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": t})
 }
 
-// func (r *Route) Refs(c *gin.Context) {
-// 	user, repoPath := c.Param("user"), c.Param("path")
-// 	slog.Debug("hit route", "route", "/repo/refs/:user/:path", "user", user, "path", repoPath)
-// 	fullPath := "/" + user + "/" + repoPath
-// 	// TODO check if repo exist
-// 	gitRepo, err := git.OpenRepo(r.fs, r.cfg.GitPath, fullPath)
-// 	if err != nil {
-// 		slog.Error("cant find repository", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	tags, err := gitRepo.GetTags(true)
-// 	if err != nil {
-// 		slog.Error("cant get tags", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	refs, err := gitRepo.GetBranches(true)
-// 	if err != nil {
-// 		slog.Error("cant get branches", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	c.HTML(http.StatusOK, "refs.html", gin.H{
-// 		"title": "Refs",
-// 		"repo":  model.Repository{Path: repoPath, User: &model.User{Name: user}},
-// 		"refs":  sort.StringSlice(refs),
-// 		"tags":  sort.StringSlice(tags),
-// 	})
-// }
+func (r *Route) Files(c *gin.Context) {
+	user, repoPath := c.Param("user"), c.Param("path")
+	slog.Debug("hit route", "route", "/repo/files/:user/:path", "user", user, "path", repoPath)
+	fullPath := "/" + user + "/" + repoPath
+	gitRepo, err := git.OpenRepo(r.fs, r.cfg.GitPath, fullPath)
+	if err != nil {
+		slog.Error("cant find repository", "err", err)
+		c.JSON(http.StatusNotFound, gin.H{"title": "cant find any repository"})
+		return
+	}
+	// TODO consider Until option
+	ci, err := gitRepo.Log(&gogit.LogOptions{})
+	if err != nil {
+		slog.Error("git log", "err", err)
+		c.JSON(http.StatusNotFound, gin.H{"title": repoPath + " not found"})
+		return
+	}
+	files := []map[string]string{}
+	count := 0
+	if err := ci.ForEach(func(cmt *object.Commit) error {
+		if count == 1 {
+			return nil
+		}
+		fi, err := cmt.Files()
+		if err != nil {
+			return err
+		}
+		count++
+		if err := fi.ForEach(func(file *object.File) error {
+			files = append(files, map[string]string{"filename": file.Name})
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		slog.Error("repo commits", "err", err)
+		c.JSON(http.StatusNotFound, gin.H{"title": repoPath + " not found"})
+		return
+	}
+	defer ci.Close()
 
-// func (r *Route) Files(c *gin.Context) {
-// 	user, repoPath := c.Param("user"), c.Param("path")
-// 	slog.Debug("hit route", "route", "/repo/files/:user/:path", "user", user, "path", repoPath)
-// 	fullPath := "/" + user + "/" + repoPath
-// 	// TODO check if repo exist
-// 	gitRepo, err := git.OpenRepo(r.fs, r.cfg.GitPath, fullPath)
-// 	if err != nil {
-// 		slog.Error("cant find repository", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	// TODO consider Until option
-// 	ci, err := gitRepo.Log(&gogit.LogOptions{})
-// 	if err != nil {
-// 		slog.Error("git log", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	files := []string{}
-// 	count := 0
-// 	if err := ci.ForEach(func(cmt *object.Commit) error {
-// 		if count == 1 {
-// 			return nil
-// 		}
-// 		fi, err := cmt.Files()
-// 		if err != nil {
-// 			return err
-// 		}
-// 		count++
-// 		if err := fi.ForEach(func(file *object.File) error {
-// 			files = append(files, file.Name)
-// 			return nil
-// 		}); err != nil {
-// 			return err
-// 		}
-// 		return nil
-// 	}); err != nil {
-// 		slog.Error("repo commits", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	defer ci.Close()
-
-// 	c.HTML(http.StatusOK, "files.html", gin.H{
-// 		"title": "Files",
-// 		"repo":  model.Repository{Path: repoPath, User: &model.User{Name: user}},
-// 		"files": sort.StringSlice(files),
-// 	})
-// }
+	c.JSON(http.StatusOK, gin.H{
+		"title": "Files",
+		"repo":  model.Repository{Path: repoPath, User: &model.User{Name: user}},
+		"files": files,
+	})
+}
 
 // func (r *Route) Log(c *gin.Context) {
 // 	user, repoPath := c.Param("user"), c.Param("path")

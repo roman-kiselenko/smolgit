@@ -1,50 +1,58 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useReposState, getRepos } from '@/store/repositories';
-import { toast } from 'sonner';
+import { useRepoFilesState, getRepoFiles } from '@/store/repofiles';
 import { Repo } from '@/types';
+import { DataTable } from '@/components/ui/DataTable';
+import columns from '@/components/views/ColumnDef';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/AuthProvider';
+import { Button } from '@/components/ui/button';
 
 export function RepoViewPage() {
-  const { repoPath } = useParams<{ repoPath: string }>();
+  const { user, repoPath } = useParams<{ user: string; repoPath: string }>();
   const repos = useReposState();
+  const repoFiles = useRepoFilesState();
+  const [searchQuery, setSearchQuery] = useState('');
+  const { logout, AuthDisabled } = useAuth();
 
   useEffect(() => {
     if (!repoPath) return;
-    // fetch all repos if not already loaded
     if (!repos.repos.get().length) {
       getRepos('');
     }
   }, [repoPath]);
 
-  const repoItem: Repo | any = repos.repos.get().find((r: Repo | any) => r.path === repoPath);
-
-  if (!repoItem) {
-    return (
-      <div className="p-4">
-        <h2 className="text-xl font-bold">Repository not found</h2>
-        <Link to="/resource" className="text-blue-500">
-          Back to list
-        </Link>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!user || !repoPath) return;
+    getRepoFiles(searchQuery, user, repoPath);
+  }, [user, searchQuery]);
 
   return (
     <div className="flex-grow overflow-auto">
-      <div className="flex flex-row py-2 px-2 items-center justify-between"></div>
+      <div className="flex flex-row py-2 px-2 items-center justify-between">
+        <Input
+          placeholder="Filter by name..."
+          className="placeholder:text-muted-foreground flex h-6 w-full rounded-md bg-transparent py-2 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {!AuthDisabled && (
+          <Button onClick={logout} className="ml-2 text-xs">
+            <LogOut size={12} />
+          </Button>
+        )}
+      </div>
 
       <div className="grid grid-cols-1">
-        <div className="p-4">
-          <h2 className="text-2xl font-bold mb-4">{repoItem.name}</h2>
-          <p className="mb-2">
-            <strong>Path:</strong> {repoItem.path}
-          </p>
-          <p className="mb-2">
-            <strong>User:</strong> {repoItem.user?.name}
-          </p>
-          <Link to="/resource" className="text-blue-500">
-            Back to list
-          </Link>
+        <div className="mx-3">
+          <DataTable
+            menuDisabled={true}
+            kind="repo"
+            noResult={false}
+            columns={columns as any}
+            data={repoFiles.files.get() as any}
+          />
         </div>
       </div>
     </div>

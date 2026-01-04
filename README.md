@@ -1,9 +1,9 @@
-
 <a href="https://en.wiktionary.org/wiki/smol"><img align="left" src="assets/smol-kitten.jpg" alt="a smol cat by Ron whisky" width="150" height="100" /></a>
 
 **smolgit** offers a minimalist [git](https://git-scm.com/) server, making it perfect for small teams or individual developers. Its minimal simple and just works. It's perfect for those who value simplicity and efficiency in their workflow. Small memory footprint, one binary to go.
 
 <!-- toc -->
+
 - [Features](#features)
 - [Preview](#preview)
 - [Getting Started](#getting-started)
@@ -23,17 +23,14 @@
 1. **user management** - simple user management, add users with `ssh-keys` to `config.yaml`.
 1. **permissions** - assign persmissions to user.
 1. **ligh-dark** - web theme based on your system settings.
-1. **basic-auth** - web basic auth middleware.
+1. **font** - customized fonts.
+1. **auth** - web auth middleware.
 
 ### Preview
 
 <p align="center">
    <img src="assets/web_1.png" alt="screenshot" width="700" />
 </p>
-<p align="center">
-   <img src="assets/web_2.png" alt="screenshot" width="700" />
-</p>
-
 
 ### Getting Started
 
@@ -41,7 +38,7 @@
 
 1. Download binary from [ release page ](https://github.com/roman-kiselenko/smolgit/releases).
 1. Generate default `config.yaml` file with command `./smolgit config > config.yaml`.
-    - Use [`yq`](https://github.com/mikefarah/yq) for inline changes `./smolgit config | yq '.server.disabled = true' > config.yaml`
+   - Use [`yq`](https://github.com/mikefarah/yq) for inline changes `./smolgit config | yq '.server.disabled = true' > config.yaml`
 1. Run `./smolgit`
 
 ```shell
@@ -93,15 +90,15 @@ git:
   base: "git@my-git-server.lan"
   users:
     # User name used for folder in git.path
-  - name: "bob"
-    # Permissions, wildcard or regex
-    # User to check access for other repositories
-    # '*' - access for all repositories
-    # 'admin' - access for admin's repositories
-    # '(admin|billy)' - access for admin's and billy's repositories
-    permissions: "*"
-    keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com
+    - name: "bob"
+      # Permissions, wildcard or regex
+      # User to check access for other repositories
+      # '*' - access for all repositories
+      # 'admin' - access for admin's repositories
+      # '(admin|billy)' - access for admin's and billy's repositories
+      permissions: "*"
+      keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com
 ```
 
 cli options:
@@ -143,7 +140,8 @@ docker run -it -p 3080:3080 -p 3081:3081 -v /path-to-smolgit-project/smolgit/:/e
 - [golang](https://go.dev/)
 - [gin](https://github.com/gin-gonic/gin)
 - [go-git](https://github.com/go-git/go-git)
-- [pico](https://picocss.com/docs)
+- **React** - responsive and modern frontend.
+- **[shadcn/ui](https://ui.shadcn.com/)** + **Tailwind CSS** - clean and flexible UI components.
 - [gossh](https://github.com/gliderlabs/ssh)
 
 ### Local development

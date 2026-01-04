@@ -49,7 +49,7 @@ export function StartPage() {
       </div>
 
       <div className="grid grid-cols-1">
-        <div className="h-24 col-span-2">
+        <div className="mx-3 h-24 col-span-2">
           <DataTable
             menuDisabled={true}
             kind={'repos'}

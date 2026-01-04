@@ -1,4 +1,4 @@
-import { FolderGit2, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
@@ -10,9 +10,10 @@ const columns: ColumnDef<Repo>[] = [
     header: 'Repo',
     cell: ({ row }) => {
       return (
-        <Link to={`/resource/${row.original.user.name}/${row.original.path}`}
-          className="flex flex-row justify-start items-center">
-          <FolderGit2 className="px-1" />
+        <Link
+          to={`/resource/${row.original.user.name}/${row.original.path}`}
+          className="flex flex-row justify-start items-center"
+        >
           <div className="px-1 align-middle">{row.original.path.replace(/\.git/, '')}</div>
         </Link>
       );
@@ -21,7 +22,7 @@ const columns: ColumnDef<Repo>[] = [
   {
     accessorKey: 'user.name',
     id: 'user',
-    header: 'User',
+    header: 'Owner',
     cell: ({ row }) => {
       return <div>{row.original?.user.name}</div>;
     },
