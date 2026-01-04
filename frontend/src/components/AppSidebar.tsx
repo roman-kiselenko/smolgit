@@ -1,22 +1,7 @@
-import {
-  Box,
-  PcCase,
-  LayoutDashboard,
-  ChevronRight,
-  Layers,
-  Columns3Cog,
-  Telescope,
-  SquareAsterisk,
-  FolderGit,
-  CalendarSync,
-  Settings,
-  ChevronDown,
-} from 'lucide-react';
-import { useCurrentClusterState } from '@/store/cluster';
-import { useloadingState } from '@/store/loader';
+import { Box, ChevronRight, FolderGit, FolderGit2, Settings, ChevronDown } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { NavLink } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Sidebar,
@@ -30,10 +15,9 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { toast } from 'sonner';
 import { cn } from '@/util';
-import { useCrdResourcesState } from '@/store/crdResources';
-import { useVersionState } from '@/store/version';
-import { compareVersions } from 'compare-versions';
+import { useReposState, getRepos } from '@/store/repositories';
 
 export const items = [
   {
@@ -47,9 +31,9 @@ export const items = [
     icon: FolderGit,
     url: '',
     submenu: [
-      { title: 'Nodes', icon: PcCase, url: '/resource/Node' },
-      { title: 'Events', icon: CalendarSync, url: '/resource/Event' },
-      { title: 'Namespaces', icon: SquareAsterisk, url: '/resource/Namespace' },
+      // { title: 'Nodes', icon: PcCase, url: '/resource/Node' },
+      // { title: 'Events', icon: CalendarSync, url: '/resource/Event' },
+      // { title: 'Namespaces', icon: SquareAsterisk, url: '/resource/Namespace' },
     ],
   },
   {
@@ -61,55 +45,38 @@ export const items = [
 ];
 
 export function AppSidebar() {
-  const cc = useCurrentClusterState();
   const { state } = useSidebar();
-  const crds = useCrdResourcesState();
   const [sidebarItems, setSidebarItems] = useState<any>([]);
-  const loading = useloadingState();
-  const version = useVersionState();
+  const repos = useReposState();
 
   useEffect(() => {
-    let newSidebar = items;
-    const crdArray = Array.from(crds.get().values());
-    if (crdArray.length > 0) {
-      const crdMap = new Map<string, any[]>();
-      crdArray.forEach((crd: any) => {
-        const data = crdMap.get(crd.spec.group);
-        if (data) {
-          crdMap.set(crd.spec.group, [...data, crd]);
-        } else {
-          crdMap.set(crd.spec.group, [crd]);
-        }
-      });
-      const submenu = [...crdMap.keys()].map((k) => {
-        const submenuItems = (crdMap.get(k) || []).map((v: any) => {
-          const version = v.spec.versions?.find((x) => x.storage);
-          return {
-            title: v.spec.names.kind,
-            url: `/customresources/${v.spec.names.kind}/${v.spec.group}/${version.name}`,
-          };
-        });
-        return {
-          title: k,
-          icon: LayoutDashboard,
-          url: '',
-          submenu: submenuItems,
-        };
-      });
-      const newItem = {
-        title: 'CRD',
-        icon: Columns3Cog,
-        url: '',
-        submenu: [
-          { title: 'Definitions', icon: Layers, url: '/resource/CustomResourceDefinition' },
-          ...submenu,
-        ],
+    const reposMap = new Map<string, any>();
+    repos.get().repos.forEach((r: any) => {
+      reposMap.set(r.path, r);
+    });
+    const submenu = [...reposMap.keys()].map((k) => {
+      return {
+        title: k.replace(/\.git/, ''),
+        icon: FolderGit2,
+        url: `/repositories/${reposMap.get(k).user.name}/${k}`,
+        submenu: [],
       };
-      const insertIndex = Math.max(0, items.length - 1);
-      newSidebar = [...items.slice(0, insertIndex), newItem, ...items.slice(insertIndex)];
-    }
-    setSidebarItems(newSidebar);
-  }, [crds, loading]);
+    });
+    setSidebarItems(
+      items.map((x) => {
+        if (x.title === 'Repositories') {
+          return {
+            title: x.title,
+            icon: x.icon,
+            url: x.url,
+            submenu: [...submenu],
+          };
+        } else {
+          return x;
+        }
+      }),
+    );
+  }, [repos]);
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarContent>
@@ -118,17 +85,7 @@ export function AppSidebar() {
             {sidebarItems.map((item: any) => (
               <Collapsible key={item.title} className="group/collapsible">
                 <SidebarMenuItem
-                  className={cn(
-                    'text-xs',
-                    state === 'collapsed' ? 'hidden' : '',
-                    (item.title !== 'Main' &&
-                      item.title !== 'Settings' &&
-                      cc.server.get() === '') ||
-                      loading.get() ||
-                      (item.title === 'Main' && cc.server.get() !== '')
-                      ? 'pointer-events-none opacity-50'
-                      : '',
-                  )}
+                  className={cn('text-xs', state === 'collapsed' ? 'hidden' : '')}
                   key={item.title}
                 >
                   {item?.url ? (
@@ -149,17 +106,9 @@ export function AppSidebar() {
                   )}
                   <CollapsibleContent>
                     <SidebarMenuSub className="gap-0 mx-0 px-0 border-none">
-                      {item.submenu
-                        .filter((x) => {
-                          return !(
-                            version.version.get() !== '' &&
-                            x.title === 'CronJobs' &&
-                            compareVersions(version.version.get(), '1.21') === -1
-                          );
-                        })
-                        .map((i, index) => (
-                          <SubmenuItem key={index} item={i} />
-                        ))}
+                      {item.submenu.map((i, index) => (
+                        <SubmenuItem key={index} item={i} />
+                      ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
@@ -173,7 +122,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton>
               <div className="flex flex-row items-center ms:invisible">
-                <Telescope size={18} className="mr-1" />
+                <FolderGit size={18} className="mr-1" />
                 <a
                   target="_blank"
                   href="https://github.com/roman-kiselenko/smolgit"

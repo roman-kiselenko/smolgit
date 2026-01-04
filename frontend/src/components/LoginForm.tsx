@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Telescope } from 'lucide-react';
+import { FolderGit } from 'lucide-react';
 
 type LoginFormProps = React.ComponentProps<'div'> & {
   login: (username: string, password: string) => Promise<boolean | void>;
@@ -58,7 +58,7 @@ export function LoginForm({ login, className, ...props }: LoginFormProps) {
             </div>
             <div className="flex flex-col items-center">
               <div className="flex flex-row">
-                <Telescope size={15} className="mr-1" />
+                <FolderGit size={15} className="mr-1" />
                 <a
                   target="_blank"
                   href="https://github.com/roman-kiselenko/smolgit"

@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
-import { Loader2, LogOut } from 'lucide-react';
-import { useloadingState } from '@/store/loader';
+import { LogOut } from 'lucide-react';
 import { DataTable } from '@/components/ui/DataTable';
 import columns from '@/components/pages/Repos/Table/ColumnDef';
 import { useReposState, getRepos } from '@/store/repositories';
@@ -13,7 +12,6 @@ import { useAuth } from '@/context/AuthProvider';
 export function StartPage() {
   const repos = useReposState();
   const [searchQuery, setSearchQuery] = useState('');
-  const loading = useloadingState();
   const { logout, AuthDisabled } = useAuth();
 
   const fetchData = useCallback(async () => {
@@ -29,9 +27,7 @@ export function StartPage() {
     fetchData();
 
     const interval = setInterval(() => {
-      if (!loading.get()) {
-        fetchData();
-      }
+      fetchData();
     }, 2000);
 
     return () => clearInterval(interval);
@@ -54,11 +50,6 @@ export function StartPage() {
 
       <div className="grid grid-cols-1">
         <div className="h-24 col-span-2">
-          {loading.get() && (
-            <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/50">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
-            </div>
-          )}
           <DataTable
             menuDisabled={true}
             kind={'repos'}

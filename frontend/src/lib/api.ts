@@ -1,14 +1,10 @@
-import { currentClusterState } from '@/store/cluster';
-
 type InvokePayload = Record<string, unknown>;
 
 export async function call<T = any>(action: string, payload?: InvokePayload): Promise<T | any> {
   let request = { ...payload };
-  if (currentClusterState.server.get() !== '') {
-    request.server = currentClusterState.server.get();
-  }
   const token = localStorage.getItem('token');
   if (payload) {
+    // TODO
     if (action !== 'lookup_configs' && action !== 'ping') {
       console.log(`[${action}] hit payload [${JSON.stringify(request)}]`);
     }

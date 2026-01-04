@@ -1,21 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTheme } from '@/components/ThemeProvider';
 import type { Theme } from '@/components/ThemeProvider';
-import { useApiResourcesState } from '@/store/apiResources';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getLocalBoolean, setLocalBoolean } from '@/lib/localStorage';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -26,27 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import {
-  Fonts,
-  FONT_KEY,
-  FONT_SIZE_KEY,
-  DEFAULT_FONT,
-  DEFAULT_FONT_SIZE,
-  MANAGED_FIELDS,
-  JSONSCHEMA_KEY,
-} from '@/settings';
+import { Fonts, FONT_KEY, FONT_SIZE_KEY, DEFAULT_FONT, DEFAULT_FONT_SIZE } from '@/settings';
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
-  const apiResources = useApiResourcesState();
-
-  const [managedFields, setManagedFields] = useState<boolean>(() => {
-    return getLocalBoolean(MANAGED_FIELDS, false);
-  });
-
-  const [jsonSchema, setJsonSchema] = useState<boolean>(() => {
-    return getLocalBoolean(JSONSCHEMA_KEY, false);
-  });
 
   const [selectedFont, setSelectedFont] = useState<string>(() => {
     return localStorage.getItem(FONT_KEY) || DEFAULT_FONT;
@@ -77,12 +48,6 @@ export function SettingsPage() {
             </TabsTrigger>
             <TabsTrigger key="font" value="font" className="text-xs">
               Font
-            </TabsTrigger>
-            <TabsTrigger key="editor" value="editor" className="text-xs">
-              Editor
-            </TabsTrigger>
-            <TabsTrigger key="api-resources" value="api-resources" className="text-xs">
-              API Resources
             </TabsTrigger>
           </TabsList>
           <TabsContent value="theme">
@@ -141,81 +106,6 @@ export function SettingsPage() {
               value={fontSize}
               className="ml-2 placeholder:text-muted-foreground flex h-7 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50 w-[80px]"
             />
-          </TabsContent>
-          <TabsContent value="editor">
-            <div className="m-2 flex flex-col">
-              <div className="flex flex-row items-center">
-                <Checkbox
-                  checked={managedFields}
-                  onCheckedChange={() => {
-                    setManagedFields(!managedFields);
-                    setLocalBoolean(MANAGED_FIELDS, !managedFields);
-                  }}
-                  id="editor"
-                />
-                <Label className="pl-1 text-xs" htmlFor="editor">
-                  Strip Managed Fields
-                </Label>
-              </div>
-              <p className="py-1">
-                If checked the yaml resource with <b>metadata.managedFields</b> will be stripped.
-              </p>
-              <div className="flex flex-row items-center">
-                <Checkbox
-                  checked={jsonSchema}
-                  onCheckedChange={() => {
-                    setJsonSchema(!jsonSchema);
-                    setLocalBoolean(JSONSCHEMA_KEY, !jsonSchema);
-                  }}
-                  id="schema"
-                />
-                <Label className="pl-1 text-xs" htmlFor="schema">
-                  Enable remote JSON Schema{' '}
-                </Label>
-              </div>
-              <p className="py-1">
-                Source of the schema{' '}
-                <a
-                  className="bg-blue-300"
-                  target="_blank"
-                  href="https://github.com/yannh/kubernetes-json-schema?tab=readme-ov-file#kubernetes-json-schemas"
-                >
-                  yannh/kubernetes-json-schema
-                </a>
-              </p>
-            </div>
-          </TabsContent>
-          <TabsContent value="api-resources">
-            {apiResources.get().slice().length === 0 ? (
-              <div className="text-xs p-2">No cluster connected.</div>
-            ) : (
-              <ScrollArea className="h-[800px] w-full rounded-md border p-1">
-                <Table className="text-xs">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Kind</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Namespaced</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {apiResources
-                      .get()
-                      .slice()
-                      .sort()
-                      .map((a: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>{a.kind}</TableCell>
-                          <TableCell className="font-medium">{a.group}</TableCell>
-                          <TableCell>{a.version}</TableCell>
-                          <TableCell>{a.namespaced ? 'True' : 'False'}</TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            )}
           </TabsContent>
         </Tabs>
       </div>
