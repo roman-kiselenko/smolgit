@@ -9,7 +9,7 @@ const columns: ColumnDef<Repo>[] = [
     header: 'Repo',
     cell: ({ row }) => {
       return (
-        <div className="flex flex-row justify-start">
+        <div className="flex flex-row justify-start items-center">
           <FolderGit2 className="px-1" />
           <div className="px-1 align-middle">{row.original.path.replace(/\.git/, '')}</div>
         </div>

@@ -14,7 +14,7 @@ export function RepoViewPage() {
     if (!repos.repos.get().length) {
       getRepos('');
     }
-  }, [repo]);
+  }, [repoPath]);
 
   const repoItem: Repo | any = repos.repos.get().find((r: Repo | any) => r.path === repoPath);
 

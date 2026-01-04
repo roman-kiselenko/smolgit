@@ -21,7 +21,7 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: '/resource/:repoPath',
+        path: '/resource/:user/:repoPath',
         element: <RepoViewPage />,
       },
     ],

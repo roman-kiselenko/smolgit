@@ -58,7 +58,7 @@ export function AppSidebar() {
       return {
         title: k.replace(/\.git/, ''),
         icon: FolderGit2,
-        url: `/resource/repositories/${reposMap.get(k).user.name}/${k}`,
+        url: `/resource/${reposMap.get(k).user.name}/${k}`,
         submenu: [],
       };
     });
