@@ -1,7 +1,8 @@
-import { createBrowserRouter, useParams } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import { StartPage } from './components/pages/Start';
 import { SettingsPage } from '@/components/pages/Settings';
 import Layout from '@/components/Layout';
+import { RepoViewPage } from '@/components/views/RepoViewPage';
 import ErrorPage from '@/components/ErrorPage';
 
 export const router = createBrowserRouter([
@@ -18,7 +19,12 @@ export const router = createBrowserRouter([
   {
     path: '/resource',
     element: <Layout />,
-    children: [],
+    children: [
+      {
+        path: '/resource/:repoPath',
+        element: <RepoViewPage />,
+      },
+    ],
     errorElement: <ErrorPage />,
   },
   {
