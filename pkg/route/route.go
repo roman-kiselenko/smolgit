@@ -3,6 +3,7 @@ package route
 import (
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"smolgit/pkg/config"
@@ -22,13 +23,14 @@ import (
 type Route struct {
 	fs    billy.Filesystem
 	cfg   *config.Config
-	users *config.Users
+	users []model.User
 }
 
 func New(ginEngine *gin.Engine, cfg *config.Config) (Route, error) {
 	r := Route{
-		fs:  osfs.New(cfg.GitPath),
-		cfg: cfg,
+		fs:    osfs.New(cfg.GitPath),
+		cfg:   cfg,
+		users: cfg.Users,
 	}
 
 	return r, nil
@@ -51,8 +53,10 @@ func (r *Route) Repos(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"title": "Repo",
-		"repos": repos,
+		"meta": map[string]interface{}{
+			"total": len(repos),
+		},
+		"items": repos,
 	})
 }
 
@@ -68,15 +72,24 @@ func (r *Route) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	u, ok := r.users.Users[req.Username]
-	if !ok || bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)) != nil {
+	index := slices.IndexFunc(r.users, func(u model.User) bool {
+		return u.Name == req.Username
+	})
+	if index == -1 {
+		slog.Error("no such user", "user", req.Username)
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
+		return
+	}
+	u := r.users[index]
+	if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)) != nil {
+		slog.Error("bad password", "user", req.Username, "password", req.Password)
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		return
 	}
 
 	exp := time.Now().Add(1 * time.Hour)
 	claims := &model.Claims{
-		Username: u.Username,
+		Username: u.Name,
 		Role:     u.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),
@@ -85,6 +98,7 @@ func (r *Route) Login(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(r.cfg.ServerJWTKey))
 	if err != nil {
+		slog.Error("cant sign token", "user", req.Username, "password", req.Password)
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		return
 	}
@@ -141,47 +155,8 @@ func (r *Route) Files(c *gin.Context) {
 	})
 }
 
-// func (r *Route) Log(c *gin.Context) {
-// 	user, repoPath := c.Param("user"), c.Param("path")
-// 	slog.Debug("hit route", "route", "/repo/log/:user/:path", "user", user, "path", repoPath)
-// 	fullPath := "/" + user + "/" + repoPath
-// 	// TODO check if repo exist
-// 	gitRepo, err := git.OpenRepo(r.fs, r.cfg.GitPath, fullPath)
-// 	if err != nil {
-// 		slog.Error("cant find repository", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	// TODO consider Until option
-// 	ct, err := gitRepo.Log(&gogit.LogOptions{})
-// 	if err != nil {
-// 		slog.Error("git log", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	type commit struct {
-// 		Hash    string
-// 		Message string
-// 		Author  string
-// 		Date    string
-// 	}
-// 	commits := []commit{}
-// 	if err := ct.ForEach(func(cmt *object.Commit) error {
-// 		commits = append(commits, commit{
-// 			Hash:    cmt.Hash.String()[0:8],
-// 			Message: cmt.Message,
-// 			Author:  cmt.Author.Name,
-// 		})
-// 		return nil
-// 	}); err != nil {
-// 		slog.Error("repo commits", "err", err)
-// 		c.HTML(http.StatusNotFound, "404.html", gin.H{"title": repoPath + " not found"})
-// 		return
-// 	}
-// 	defer ct.Close()
-// 	c.HTML(http.StatusOK, "log.html", gin.H{
-// 		"title":   "Repo",
-// 		"repo":    model.Repository{Path: repoPath, User: &model.User{Name: user}},
-// 		"commits": commits,
-// 	})
-// }
+func (r *Route) Commit(c *gin.Context) {
+	user, repoPath := c.Param("user"), c.Param("path")
+	slog.Debug("hit route", "route", "/repo/commit/:user/:path", "user", user, "path", repoPath)
+	c.JSON(http.StatusOK, gin.H{"title": "Commit", "repo": model.Repository{Path: repoPath, User: &model.User{Name: user}}})
+}

@@ -64,17 +64,10 @@ log:
   # Log level (INFO, DEBUG, TRACE, WARN)
   level: DEBUG
 server:
+  jwt_key: "super-salt"
+  auth_disabled: false
   # Disable web server
   disabled: false
-  # Enable basic http auth
-  auth:
-    enabled: false
-    # Credentials for basic auth
-    accounts:
-      - login: user2
-        password: bar
-      - login: user1
-        password: foo
   # Web server address
   addr: ":3080"
   # Navbar brand string
@@ -84,21 +77,16 @@ ssh:
   addr: ":3081"
 git:
   # Folder to save git repositories
-  path: /tmp/smolgit
+  path: ./tmp
   # Base for clone string formating
   # (e.g. ssh://git@my-git-server.lan/myuser/project.git)
   base: "git@my-git-server.lan"
   users:
-    # User name used for folder in git.path
     - name: "bob"
-      # Permissions, wildcard or regex
-      # User to check access for other repositories
-      # '*' - access for all repositories
-      # 'admin' - access for admin's repositories
-      # '(admin|billy)' - access for admin's and billy's repositories
-      permissions: "*"
+      password: "$2y$05$US7wXbew8P9d2h8qL3aC6OMhVcwO.1W6U.hVFBGNj9o9YQO.cSqd2" # htpasswd -nbB admin MySecret123
+      role: "admin"
       keys:
-        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ... developer@mail.com
 ```
 
 cli options:

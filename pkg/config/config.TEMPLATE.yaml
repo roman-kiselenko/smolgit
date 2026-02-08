@@ -26,11 +26,7 @@ git:
   users:
     # User name used for folder in git.path
     - name: "bob"
-      # Permissions, wildcard or regex
-      # User to check access for other repositories
-      # '*' - access for all repositories
-      # 'admin' - access for admin's repositories
-      # '(admin|billy)' - access for admin's and billy's repositories
-      permissions: "*"
+      password: "" # htpasswd -nbB admin MySecret123
+      role: "admin"
       keys:
         - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCq9rD9b8tYyuSLsTECHCn... developer@mail.com

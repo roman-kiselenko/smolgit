@@ -6,6 +6,8 @@ import (
 
 type User struct {
 	Name        string        `json:"name,omitempty"`
+	Password    string        `json:"password,omitempty"`
+	Role        string        `json:"role,omitempty"`
 	Permissions string        `json:"permissions,omitempty"`
 	Repos       []*Repository `json:"repos,omitempty"`
 	Keys        []string      `json:"keys,omitempty"`

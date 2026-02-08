@@ -28,7 +28,7 @@ export function StartPage() {
 
     const interval = setInterval(() => {
       fetchData();
-    }, 2000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [fetchData]);

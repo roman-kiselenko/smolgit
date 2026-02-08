@@ -125,6 +125,11 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 			"message": "pong",
 		})
 	})
+	router.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "ok",
+		})
+	})
 	router.GET("/api/auth_disabled", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": a.Config.ServiceAuthDisabled,
@@ -142,6 +147,7 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 	})
 
 	router.GET("/api/repos", r.Repos)
+	router.POST("/api/login", r.Login)
 	router.GET("/api/repos/files/:user/:path", r.Files)
 
 	addr := a.Config.ServerAddr

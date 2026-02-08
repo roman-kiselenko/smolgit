@@ -8,15 +8,15 @@ export const repositoriesState = hookstate<{ repos: object[] }>({
 
 export async function getRepos(query: string) {
   try {
-    let { repos } = await call<any[]>('repos');
+    let { items } = await call<any[]>('repos');
     if (query !== '') {
-      repos = repos.filter((c) => {
+      items = items.filter((c) => {
         return String(c.path || '')
           .toLowerCase()
           .includes(query.toLowerCase());
       });
     }
-    repositoriesState.repos.set(repos);
+    repositoriesState.repos.set(items);
   } catch (error: any) {
     toast.error('Error! Cant load repos\n' + error.message);
     console.error('Error! Cant load repos\n' + error.message);

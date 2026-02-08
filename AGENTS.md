@@ -1,9 +1,11 @@
 # AGENTS.md file for smolgit
 
 ## Overview
+
 smolgit is a minimalist Git server written in Go with a React/TS frontend. It exposes a REST API over HTTP and an SSH interface.
 
 ## Directory layout
+
 - `cmd/` – main entry point.
 - `pkg/` – core libraries: ssh, git, config, model, route, etc.
 - `frontend/` – React/TS UI, built into `dist/` and embedded via `go:embed`.
@@ -13,22 +15,23 @@ smolgit is a minimalist Git server written in Go with a React/TS frontend. It ex
 
 ## Build & Run
 
-| Target | Description | Command |
-|--------|-------------|---------|
-| `build` | Compile Go binary into `bin/smolgit` | `make build` |
-| `build-frontend` | Build React assets into `dist/` | `make build-frontend` |
-| `build-docker` | Build Docker image | `make build-docker` |
-| `run` | Run compiled binary locally | `make run` |
-| `run-docker` | Run smolgit in a container | `make run-docker` |
-| `config` | Generate default config to stdout | `make config` |
-| `config-docker` | Generate config for Docker | `make config-docker` |
-| `clean` | Remove build artifacts | `make clean` |
-| `lint` | Run golangci-lint on Go code | `make lint` |
-| `test` | Run Go unit tests | `make test` |
-| `integration-test` | Run Bats integration tests | `make integration-test` |
-| `help` | Show available make targets | `make help` |
+| Target             | Description                          | Command                 |
+| ------------------ | ------------------------------------ | ----------------------- |
+| `build`            | Compile Go binary into `bin/smolgit` | `make build`            |
+| `build-frontend`   | Build React assets into `dist/`      | `make build-frontend`   |
+| `build-docker`     | Build Docker image                   | `make build-docker`     |
+| `run`              | Run compiled binary locally          | `make run`              |
+| `run-docker`       | Run smolgit in a container           | `make run-docker`       |
+| `config`           | Generate default config to stdout    | `make config`           |
+| `config-docker`    | Generate config for Docker           | `make config-docker`    |
+| `clean`            | Remove build artifacts               | `make clean`            |
+| `lint`             | Run golangci-lint on Go code         | `make lint`             |
+| `test`             | Run Go unit tests                    | `make test`             |
+| `integration-test` | Run Bats integration tests           | `make integration-test` |
+| `help`             | Show available make targets          | `make help`             |
 
 ### Docker usage
+
 ```sh
 # Build image
 make build-docker
@@ -52,35 +55,41 @@ A minimal example:
 
 ```yaml
 log:
+  # Color log output
   color: true
+  # Log as json
   json: false
+  # Log level (INFO, DEBUG, TRACE, WARN)
   level: DEBUG
 server:
-  disabled: false
-  jwt_key: "your-secret-key"
+  jwt_key: "super-salt"
   auth_disabled: false
+  # Disable web server
+  disabled: false
+  # Web server address
   addr: ":3080"
+  # Navbar brand string
   brand: "smolgit"
-  auth:
-    enabled: false
-    accounts:
-      - login: user
-        password: pass
 ssh:
+  # SSH server address
   addr: ":3081"
 git:
-  path: /tmp/smolgit
+  # Folder to save git repositories
+  path: ./tmp
+  # Base for clone string formating
+  # (e.g. ssh://git@my-git-server.lan/myuser/project.git)
   base: "git@my-git-server.lan"
   users:
     - name: "bob"
-      permissions: "*"
+      password: "$2y$05$US7wXbew8P9d2h8qL3aC6OMhVcwO.1W6U.hVFBGNj9o9YQO.cSqd2" # htpasswd -nbB admin MySecret123
+      role: "admin"
       keys:
-        - ssh-rsa AAAAB3...
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ... developer@mail.com
 ```
 
-* `server.jwt_key` is mandatory – without it the server will refuse to start.
-* `git.path` can point to a local `git` binary; if omitted the binary defaults to `/usr/local/bin/git`.
-* `git.users` controls SSH access; each user has a list of public keys and a permissions string.
+- `server.jwt_key` is mandatory – without it the server will refuse to start.
+- `git.path` can point to a local `git` binary; if omitted the binary defaults to `/usr/local/bin/git`.
+- `git.users` controls SSH access; each user has a list of public keys and a role string.
 
 ## Frontend
 
@@ -104,11 +113,13 @@ pnpm run lint
 ## Testing
 
 ### Go unit tests
+
 ```sh
 make test
 ```
 
 ### Bats integration tests
+
 ```sh
 make integration-test
 ```
@@ -118,22 +129,23 @@ The Bats tests start a temporary smolgit instance, exercise the CLI, and verify 
 ### CI
 
 GitHub Actions runs:
-* `make build`
-* `make lint`
-* `make config`
-* `make integration-test`
+
+- `make build`
+- `make lint`
+- `make config`
+- `make integration-test`
 
 See `.github/workflows/test.yml` for details.
 
 ## Naming & Coding Conventions
 
-| Area | Convention |
-|------|------------|
-| Go packages | lowercase, no underscores |
+| Area           | Convention                                             |
+| -------------- | ------------------------------------------------------ |
+| Go packages    | lowercase, no underscores                              |
 | Go identifiers | camelCase for variables, PascalCase for exported types |
-| Go structs | Tags use `koanf` style |
-| Frontend | PascalCase components, camelCase props |
-| Paths | Use relative paths in imports (e.g. `smolgit/pkg/git`) |
+| Go structs     | Tags use `koanf` style                                 |
+| Frontend       | PascalCase components, camelCase props                 |
+| Paths          | Use relative paths in imports (e.g. `smolgit/pkg/git`) |
 
 ## Gotchas
 
@@ -154,7 +166,9 @@ make test
 before pushing. Use the PR title format `[smolgit] <Title>`.
 
 ## Commit Messages
+
 Follow Conventional Commits:
+
 - `feat`: A new feature
 - `fix`: A bug fix
 - `docs`: Documentation only changes

@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isAuthenticated: true, AuthDisabled: !!authDisabled }}
+      value={{ user, token, login, logout, isAuthenticated: !!token, AuthDisabled: !!authDisabled }}
     >
       {children}
     </AuthContext.Provider>

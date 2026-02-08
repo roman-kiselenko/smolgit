@@ -10,7 +10,7 @@ ADD . ./
 
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -o /build/smolgit
 
-FROM --platform=$BUILDPLATFORM alpine/git:v2.49.0 AS runner
+FROM alpine/git:v2.49.0 AS runner
 
 COPY --from=builder /build/smolgit /usr/bin/smolgit
 

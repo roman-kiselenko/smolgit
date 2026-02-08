@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"html/template"
+	"strings"
 
 	"smolgit/pkg/model"
 )
@@ -19,48 +20,34 @@ type Config struct {
 	ServerAddr          string              `koanf:"server.addr"`
 	ServerAuthAccounts  []map[string]string `koanf:"server.auth.accounts"`
 	ServerBrand         string              `koanf:"server.brand"`
-	Users               []User              `koanf:"users"`
+	Users               []model.User        `koanf:"git.users"`
 	SSHAddr             string              `koanf:"ssh.addr"`
 	GitPath             string              `koanf:"git.path"`
 	GitBase             string              `koanf:"git.base"`
 	Version             string
 }
 
-type User struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Role     string `yaml:"role"`
-}
-
 type Users struct {
-	Users map[string]User
+	Users map[string]model.User
 }
 
 func (c *Config) FindUserByKey(key string) (model.User, error) {
-	// for _, u := range c.GitUsers {
-	// 	for _, k := range u["keys"].([]interface{}) {
-	// 		p, _ := u["permissions"].(string)
-	// 		if strings.HasPrefix(k.(string), key) {
-	// 			return model.User{
-	// 				Name:        u["name"].(string),
-	// 				Permissions: p,
-	// 			}, nil
-	// 		}
-	// 	}
-	// }
+	for _, u := range c.Users {
+		for _, k := range u.Keys {
+			if strings.HasPrefix(k, key) {
+				return u, nil
+			}
+		}
+	}
 	return model.User{}, errors.New("user not found")
 }
 
 func (c *Config) FindUserByName(name string) (model.User, error) {
-	// for _, u := range c.GitUsers {
-	// 	if u["name"].(string) == name {
-	// 		p, _ := u["permissions"].(string)
-	// 		return model.User{
-	// 			Name:        u["name"].(string),
-	// 			Permissions: p,
-	// 		}, nil
-	// 	}
-	// }
+	for _, u := range c.Users {
+		if u.Name == name {
+			return u, nil
+		}
+	}
 	return model.User{}, errors.New("user not found")
 }
 
