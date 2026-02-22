@@ -7,12 +7,13 @@ import { useEffect, useState } from 'react';
 import { useReposState, getRepos } from '@/store/repositories';
 import { useRepoFilesState, getRepoFiles } from '@/store/repofiles';
 import { Repo } from '@/types';
-import { DataTable } from '@/components/ui/DataTable';
-import columns from '@/components/views/ColumnDef';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthProvider';
+import { CardContent, CardHeader } from '@/components/ui/card';
+import timeAgo from '@/timeAgo';
+import moment from 'moment';
 
-// type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] };
+type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] };
 
 export function RepoViewPage() {
   const { user, repoPath } = useParams<{ user: string; repoPath: string }>();
@@ -30,12 +31,12 @@ export function RepoViewPage() {
 
   useEffect(() => {
     if (!user || !repoPath) return;
-    getRepoFiles(user, repoPath);
-  }, [user]);
+    getRepoFiles(searchQuery, user, repoPath);
+  }, [user, searchQuery]);
 
   return (
     <div className="flex-grow overflow-auto">
-      <div className="flex flex-row py-2 px-2 items-center justify-between mx-3">
+      <div className="flex flex-row py-2 px-4 items-center justify-between mx-3">
         <Input
           placeholder="Filter by name..."
           className="placeholder:text-muted-foreground flex h-6 w-full rounded-md bg-transparent py-2 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
@@ -48,25 +49,31 @@ export function RepoViewPage() {
         )}
       </div>
 
-      <div className="flex flex-row py-2 px-2 items-center justify-between mx-3">
-        <div className="text-sm">Author: {repoFiles.author.get()}</div>
-        <div className="text-sm">Email: {repoFiles.email.get()}</div>
-        <div className="text-sm">Date: {repoFiles.date.get()}</div>
-        <div className="text-sm">Hash: {repoFiles.hash.get()}</div>
-      </div>
-      <div className="grid grid-cols-1">
-        <div className="mx-3">
-          <div className="flex flex-col gap-1">
-            {(repoFiles.files.get() || []).map((item) => renderItem(item))}
-          </div>
+      <div className="flex flex-row py-2 px-4 items-center justify-between mx-3">
+        <div className="text-sm hover:text-ring">{repoFiles.author.get()}</div>
+        <div className="text-sm hover:text-ring">{repoFiles.email.get()}</div>
+        <div className="text-sm hover:text-ring" title={repoFiles.date.get()}>
+          Last commit: {timeAgo.format(moment(repoFiles.date.get()).toDate(), 'mini')}
         </div>
+        <div className="text-sm hover:text-ring">Last hash: {repoFiles.hash.get()}</div>
+      </div>
+      <div className="grid grid-cols-2">
+        <CardContent className="px-4">
+          <div className="flex flex-col gap-1">
+            {repoFiles.files
+              .get()
+              .toSorted((a: any, b: any) => b.items?.length - a.items?.length)
+              .map((item) => renderItem(item as FileTreeItem))}
+          </div>
+          <div className="flex flex-col gap-1"></div>
+        </CardContent>
       </div>
     </div>
   );
 }
 
-const renderItem = (fileItem: any) => {
-  if ('items' in fileItem) {
+const renderItem = (fileItem: FileTreeItem) => {
+  if ('items' in fileItem && fileItem.items.length > 0) {
     return (
       <Collapsible key={fileItem.name}>
         <CollapsibleTrigger asChild>

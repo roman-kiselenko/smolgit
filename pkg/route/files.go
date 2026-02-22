@@ -12,16 +12,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-// type Node struct {
-// 	Name     string           `json:"filename"`
-// 	IsDir    bool             `json:"is_dir"`
-// 	Children map[string]*Node `json:"children"`
-// 	Path     string           `json:"path"`
-// }
-
 type Node struct {
-	Name  string `json:"name,omitempty"`
-	Items []Node `json:"items,omitempty"`
+	Name  string `json:"name"`
+	Items []Node `json:"items"`
 }
 
 // buildFileTree constructs the hierarchical tree from a list of file paths
@@ -74,7 +67,7 @@ func buildFileTree(paths []string) *Node {
 			current.Items = append(current.Items, *newNode)
 		} else {
 			// Add a file node
-			current.Items = append(current.Items, Node{Name: lastPart})
+			current.Items = append(current.Items, Node{Name: lastPart, Items: []Node{}})
 		}
 	}
 

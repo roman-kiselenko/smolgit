@@ -18,11 +18,24 @@ export const repoFilesState = hookstate<{
   date: '',
 });
 
-export async function getRepoFiles(userName: string | undefined, repoName: string | undefined) {
+export async function getRepoFiles(
+  query: string,
+  userName: string | undefined,
+  repoName: string | undefined,
+) {
   try {
     let response = await call<any[]>(`repos/files/${userName}/${repoName}`);
+    let files = response.files;
+    if (query !== '') {
+      files = files.filter((c) => {
+        return String(c.name || '')
+          .toLowerCase()
+          .includes(query.toLowerCase());
+      });
+    }
+
     repoFilesState.set({
-      files: response.files,
+      files: files,
       hash: response.hash,
       message: response.message,
       author: response.author,
