@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 teardown() {
-  cat output.log
-  cat cfg.yaml
-  rm -rf cfg.yaml
-  rm -rf output.log
+    cat output.log
+    cat cfg.yaml
+    rm -rf cfg.yaml
+    rm -rf output.log
 }
 
 @test "smolgit can show help" {
@@ -15,13 +15,13 @@ teardown() {
 @test "smolgit can generate config" {
     run ./bin/smolgit config
     [ "${lines[0]}" = "log:" ]
-    ./bin/smolgit config > cfg.yaml
+    ./bin/smolgit config >cfg.yaml
     test -f cfg.yaml
 }
 
 @test "smolgit up and running" {
-    ./bin/smolgit config | yq '.log.color = false | ... comments=""' > cfg.yaml
-    ./bin/smolgit --config=./cfg.yaml > output.log &
+    ./bin/smolgit config | yq '.log.color = false | ... comments=""' >cfg.yaml
+    ./bin/smolgit --config=./cfg.yaml >output.log &
     server_pid=$!
     sleep 1
     kill $server_pid
@@ -33,8 +33,8 @@ teardown() {
 }
 
 @test "web server respond 404 no repositories found" {
-    ./bin/smolgit config | yq '.log.color = false | ... comments=""' > cfg.yaml
-    ./bin/smolgit --config=./cfg.yaml > output.log &
+    ./bin/smolgit config | yq '.log.color = false | ... comments=""' >cfg.yaml
+    ./bin/smolgit --config=./cfg.yaml >output.log &
     server_pid=$!
     sleep 1
     response_code=$(curl -so /dev/null -w '%{response_code}' localhost:3080/)

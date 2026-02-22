@@ -28,9 +28,8 @@
 
 ### Preview
 
-<p align="center">
-   <img src="assets/web_1.png" alt="screenshot" width="700" />
-</p>
+<img src="assets/dark.png" alt="screenshot" width="45%" />
+<img src="assets/light.png" alt="screenshot" width="45%" />
 
 ### Getting Started
 
