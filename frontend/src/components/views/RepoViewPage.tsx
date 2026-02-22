@@ -12,7 +12,7 @@ import columns from '@/components/views/ColumnDef';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthProvider';
 
-type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] };
+// type FileTreeItem = { name: string } | { name: string; items: FileTreeItem[] };
 
 export function RepoViewPage() {
   const { user, repoPath } = useParams<{ user: string; repoPath: string }>();
@@ -20,57 +20,22 @@ export function RepoViewPage() {
   const repoFiles = useRepoFilesState();
   const [searchQuery, setSearchQuery] = useState('');
   const { logout, AuthDisabled } = useAuth();
-  const fileTree: FileTreeItem[] = [
-    {
-      name: 'components',
-      items: [
-        {
-          name: 'ui',
-          items: [
-            { name: 'button.tsx' },
-            { name: 'card.tsx' },
-            { name: 'dialog.tsx' },
-            { name: 'input.tsx' },
-            { name: 'select.tsx' },
-            { name: 'table.tsx' },
-          ],
-        },
-        { name: 'login-form.tsx' },
-        { name: 'register-form.tsx' },
-      ],
-    },
-    {
-      name: 'lib',
-      items: [{ name: 'utils.ts' }, { name: 'cn.ts' }, { name: 'api.ts' }],
-    },
-    {
-      name: 'hooks',
-      items: [
-        { name: 'use-media-query.ts' },
-        { name: 'use-debounce.ts' },
-        { name: 'use-local-storage.ts' },
-      ],
-    },
-    {
-      name: 'types',
-      items: [{ name: 'index.d.ts' }, { name: 'api.d.ts' }],
-    },
-    {
-      name: 'public',
-      items: [{ name: 'favicon.ico' }, { name: 'logo.svg' }, { name: 'images' }],
-    },
-    { name: 'app.tsx' },
-    { name: 'layout.tsx' },
-    { name: 'globals.css' },
-    { name: 'package.json' },
-    { name: 'tsconfig.json' },
-    { name: 'README.md' },
-    { name: '.gitignore' },
-  ];
+
+  useEffect(() => {
+    if (!repoPath) return;
+    if (!repos.repos.get().length) {
+      getRepos('');
+    }
+  }, [repoPath]);
+
+  useEffect(() => {
+    if (!user || !repoPath) return;
+    getRepoFiles(user, repoPath);
+  }, [user]);
 
   return (
     <div className="flex-grow overflow-auto">
-      <div className="flex flex-row py-2 px-2 items-center justify-between">
+      <div className="flex flex-row py-2 px-2 items-center justify-between mx-3">
         <Input
           placeholder="Filter by name..."
           className="placeholder:text-muted-foreground flex h-6 w-full rounded-md bg-transparent py-2 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
@@ -83,23 +48,24 @@ export function RepoViewPage() {
         )}
       </div>
 
+      <div className="flex flex-row py-2 px-2 items-center justify-between mx-3">
+        <div className="text-sm">Author: {repoFiles.author.get()}</div>
+        <div className="text-sm">Email: {repoFiles.email.get()}</div>
+        <div className="text-sm">Date: {repoFiles.date.get()}</div>
+        <div className="text-sm">Hash: {repoFiles.hash.get()}</div>
+      </div>
       <div className="grid grid-cols-1">
         <div className="mx-3">
-          <div className="flex flex-col gap-1">{fileTree.map((item) => renderItem(item))}</div>
-          {/* <DataTable
-            menuDisabled={true}
-            kind="repo"
-            noResult={false}
-            columns={columns as any}
-            data={repoFiles.files.get() as any}
-          /> */}
+          <div className="flex flex-col gap-1">
+            {(repoFiles.files.get() || []).map((item) => renderItem(item))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-const renderItem = (fileItem: FileTreeItem) => {
+const renderItem = (fileItem: any) => {
   if ('items' in fileItem) {
     return (
       <Collapsible key={fileItem.name}>
