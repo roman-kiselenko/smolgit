@@ -45,6 +45,7 @@ func New(version string, configPath *string, exitchnl, signchnl chan (os.Signal)
 	}
 	app.Config = &cfg
 	logger = initLogger()
+	logger.Debug("loading config", "path", *configPath)
 	return app, nil
 }
 
@@ -56,14 +57,14 @@ func (a *App) Run(staticFiles embed.FS) error {
 		}
 	}
 
-	logger.Info("initialize ssh server", "addr", a.Config.SSHAddr)
+	logger.Debug("initialize ssh server", "addr", a.Config.SSHAddr)
 	sshServer, err := ssh.New(a.Config)
 	if err != nil {
 		return fmt.Errorf("cant run ssh server %w", err)
 	}
 
 	go func() {
-		logger.Info("starting SSH server", "addr", a.Config.SSHAddr)
+		logger.Debug("starting SSH server", "addr", a.Config.SSHAddr)
 		if err := sshServer.ListenAndServe(); err != nil {
 			logger.Error("cant run ssh server", "error", err)
 		}
@@ -71,7 +72,7 @@ func (a *App) Run(staticFiles embed.FS) error {
 
 	go func() {
 		code := <-a.signchnl
-		logger.Info("os signal received", "signal", code)
+		logger.Debug("os signal received", "signal", code)
 		if err := sshServer.Close(); err != nil {
 			logger.Error("cant stop ssh server", "error", err)
 		}
@@ -103,7 +104,7 @@ func initLogger() *slog.Logger {
 	if err := level.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
 		level.Set(slog.LevelDebug)
 	}
-	logger.Info("set loglevel", "level", level)
+	logger.Debug("set loglevel", "level", level)
 
 	return logger
 }
@@ -152,7 +153,7 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 
 	addr := a.Config.ServerAddr
 	go func() {
-		logger.Info("start server", "brand", a.Config.ServerBrand, "address", addr)
+		logger.Debug("start server", "brand", a.Config.ServerBrand, "address", addr)
 		if err := router.Run(addr); err != nil {
 			logger.Error("cant run ssh server", "error", err)
 		}
