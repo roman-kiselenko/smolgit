@@ -18,6 +18,7 @@ type Node struct {
 }
 
 // buildFileTree constructs the hierarchical tree from a list of file paths
+// by creating a directory traversal structure
 func buildFileTree(paths []string) *Node {
 	root := &Node{
 		Name:  "",
@@ -26,45 +27,44 @@ func buildFileTree(paths []string) *Node {
 
 	for _, path := range paths {
 		isDir := strings.HasSuffix(path, "/")
-		path = strings.TrimSuffix(path, "/") // Remove trailing slash
+		path = strings.TrimSuffix(path, "/")
 
 		parts := strings.Split(path, "/")
 		current := root
 
-		// Traverse through the directory structure
 		for i := 0; i < len(parts)-1; i++ {
 			part := parts[i]
-			found := false
 
-			// Check if a child with this name already exists
+			// Find if a child with this name already exists
+			var found *Node
 			for j := range current.Items {
 				if current.Items[j].Name == part {
-					current = &current.Items[j]
-					found = true
+					found = &current.Items[j]
 					break
 				}
 			}
 
-			if !found {
+			if found == nil {
 				// Create a new directory node
-				newNode := &Node{
+				newNode := Node{
 					Name:  part,
 					Items: []Node{},
 				}
-				current.Items = append(current.Items, *newNode)
-				current = newNode
+				current.Items = append(current.Items, newNode)
+				found = &current.Items[len(current.Items)-1]
 			}
+
+			current = found
 		}
 
 		// Handle the final part (file or directory)
 		lastPart := parts[len(parts)-1]
 		if isDir {
-			// Add a new directory node
-			newNode := &Node{
+			newNode := Node{
 				Name:  lastPart,
 				Items: []Node{},
 			}
-			current.Items = append(current.Items, *newNode)
+			current.Items = append(current.Items, newNode)
 		} else {
 			// Add a file node
 			current.Items = append(current.Items, Node{Name: lastPart, Items: []Node{}})
@@ -72,26 +72,6 @@ func buildFileTree(paths []string) *Node {
 	}
 
 	return root
-}
-
-// collectFlatNodes returns a flat list of nodes, with each directory containing its items
-func collectFlatNodes(node *Node) []Node {
-	var result []Node
-
-	// Function to recursively traverse the tree
-	var traverse func(*Node)
-	traverse = func(n *Node) {
-		// Add current node to the result
-		result = append(result, Node{Name: n.Name, Items: n.Items})
-
-		// If this node has children, recursively process them
-		for _, child := range n.Items {
-			traverse(&child)
-		}
-	}
-
-	traverse(node)
-	return result
 }
 
 func (r *Route) Files(c *gin.Context) {
