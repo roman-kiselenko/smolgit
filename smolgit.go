@@ -15,7 +15,7 @@ import (
 	"smolgit/pkg/config"
 )
 
-//go:embed all:dist
+//go:embed all:dist/*
 var staticFiles embed.FS
 
 var (

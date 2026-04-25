@@ -68,9 +68,7 @@ export function RepoViewPage() {
           <div className="flex flex-col gap-1"></div>
         </CardContent>
         <CardContent className="px-4">
-          <div className="flex flex-col gap-1">
-           Another column
-          </div>
+          <div className="flex flex-col gap-1 text-xs">Another column</div>
           <div className="flex flex-col gap-1"></div>
         </CardContent>
       </div>

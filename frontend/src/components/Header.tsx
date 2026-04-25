@@ -1,17 +1,9 @@
-import { JumpCommand } from '@/components/ui/jump-command';
-import { useVersionState, setVersion } from '@/store/version';
-import { useCurrentClusterState, setCurrentCluster } from '@/store/cluster';
 import { Plus, Unplug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router';
 import { useEffect, useState, useRef } from 'react';
-import { NamespaceSelector } from '@/components/NamespaceSelector';
 import { toast } from 'sonner';
-import { removeAllSubscriptions } from '@/lib/subscriptionManager';
-import { flushAllStates } from '@/store/resources';
-import { apiResourcesState } from '@/store/apiResources';
-import { useCrdResourcesState } from '@/store/crdResources';
 import { Input } from '@/components/ui/input';
 
 export function Header({
@@ -21,9 +13,6 @@ export function Header({
   setSearchQuery: any;
   withNsSelector?: boolean;
 }) {
-  const version = useVersionState();
-  const clusterState = useCurrentClusterState();
-  const crdResources = useCrdResourcesState();
   let navigate = useNavigate();
   let location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,9 +47,7 @@ export function Header({
           </div>
         </div>
       )}
-      <div>
-        <JumpCommand />
-      </div>
+      <div></div>
       <div className="flex flex-row px-2 items-center">
         <Input
           ref={inputRef}
@@ -70,13 +57,7 @@ export function Header({
         />
       </div>
       <div className="text-muted-foreground items-center flex justify-between"></div>
-      {withNsSelector ? (
-        <div className="flex flex-row pr-2">
-          <NamespaceSelector />
-        </div>
-      ) : (
-        <></>
-      )}
+      {withNsSelector ? <div className="flex flex-row pr-2"></div> : <></>}
       <div className="flex flex-row">
         {user?.role ? (
           <p className="text-muted-foreground text-xs pr-2">
@@ -87,44 +68,9 @@ export function Header({
         ) : (
           <></>
         )}
-        {clusterState.server.get() === '' ? (
-          <></>
-        ) : (
-          <p className="text-muted-foreground text-xs pr-2">
-            <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 text-[10px] font-medium opacity-100 select-none">
-              {clusterState.server.get()}
-            </kbd>
-          </p>
-        )}
-        {version.version.get() === '' ? (
-          <></>
-        ) : (
-          <p className="text-muted-foreground text-xs">
-            <kbd className="bg-muted text-muted-foreground pointer-events-none inline-flex h-5 items-center gap-1 rounded border px-1.5 text-[10px] font-medium opacity-100 select-none">
-              {version.version.get()}
-            </kbd>
-          </p>
-        )}
       </div>
       <div className="text-muted-foreground">
-        <div className="pl-2 flex items-center">
-          <Button
-            title="disconnect cluster"
-            className="bg-red-500 hover:bg-red-400"
-            onClick={() => {
-              toast.warning(<div>Disconnect cluster {clusterState.server.get()}</div>);
-              setCurrentCluster('');
-              setVersion('');
-              flushAllStates();
-              apiResourcesState.set([]);
-              crdResources.set(new Map());
-              removeAllSubscriptions();
-              navigate('/');
-            }}
-          >
-            <Unplug />
-          </Button>
-        </div>
+        <div className="pl-2 flex items-center"></div>
       </div>
     </div>
   );

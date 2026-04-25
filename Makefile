@@ -17,7 +17,7 @@ all: help
 
 ## Build:
 build: ## Build all the binaries and put the output in bin/
-	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/$(PROJECT_NAME) .
+	$(GOCMD) build -ldflags "-X main.version=$(BRANCH)-$(HASH)" -o bin/$(PROJECT_NAME)
 
 ## Build frontend:
 build-frontend: ## Build frontend
