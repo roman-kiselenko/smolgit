@@ -6,10 +6,21 @@ import { LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useReposState, getRepos } from '@/store/repositories';
 import { useRepoFilesState, getRepoFiles } from '@/store/repofiles';
+import { useRepoCommitsState, getRepoCommits, CommitItem } from '@/store/repocommits';
 import { Repo } from '@/types';
 import { Input } from '@/components/ui/input';
+import AgeCell from '@/components/ui/Table/AgeCell';
 import { useAuth } from '@/context/AuthProvider';
 import { CardContent, CardHeader } from '@/components/ui/card';
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableCaption,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import timeAgo from '@/timeAgo';
 import moment from 'moment';
 
@@ -19,7 +30,10 @@ export function RepoViewPage() {
   const { user, repoPath } = useParams<{ user: string; repoPath: string }>();
   const repos = useReposState();
   const repoFiles = useRepoFilesState();
+  const repoCommits = useRepoCommitsState();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFiles, setShowFiles] = useState(true);
+  const [showCommits, setShowCommits] = useState(false);
   const { logout, AuthDisabled } = useAuth();
 
   useEffect(() => {
@@ -33,6 +47,11 @@ export function RepoViewPage() {
     if (!user || !repoPath) return;
     getRepoFiles(searchQuery, user, repoPath);
   }, [user, searchQuery]);
+
+  useEffect(() => {
+    if (!user || !repoPath) return;
+    getRepoCommits(user, repoPath);
+  }, [user]);
 
   return (
     <div className="flex-grow overflow-auto">
@@ -49,13 +68,9 @@ export function RepoViewPage() {
         )}
       </div>
 
-      <div className="flex flex-row py-2 px-4 items-center justify-between mx-3">
-        <div className="text-sm hover:text-ring">{repoFiles.author.get()}</div>
-        <div className="text-sm hover:text-ring">{repoFiles.email.get()}</div>
-        <div className="text-sm hover:text-ring" title={repoFiles.date.get()}>
-          Last commit: {timeAgo.format(moment(repoFiles.date.get()).toDate(), 'mini')}
-        </div>
-        <div className="text-sm hover:text-ring">Last hash: {repoFiles.hash.get()}</div>
+      <div className="flex flex-row py-2 px-4 items-center justify-evenly mx-3">
+        <div className="text-sm hover:text-ring">Files</div>
+        <div className="text-sm hover:text-ring">Commits</div>
       </div>
       <div className="grid grid-cols-2">
         <CardContent className="px-4">
@@ -68,8 +83,22 @@ export function RepoViewPage() {
           <div className="flex flex-col gap-1"></div>
         </CardContent>
         <CardContent className="px-4">
-          <div className="flex flex-col gap-1 text-xs">Another column</div>
-          <div className="flex flex-col gap-1"></div>
+          <div className="flex flex-col gap-1 text-xs">
+            <Table className="w-full text-sm">
+              <TableHeader></TableHeader>
+              <TableBody>
+                {repoCommits.commits.get().map((item: CommitItem) => (
+                  <TableRow key={item.hash}>
+                    <TableCell>{item.message}</TableCell>
+                    <TableCell>{item.author}</TableCell>
+                    <TableCell>
+                      <AgeCell age={item.date} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </div>
     </div>

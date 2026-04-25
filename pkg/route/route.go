@@ -53,9 +53,3 @@ func (r *Route) Repos(c *gin.Context) {
 		"items": repos,
 	})
 }
-
-func (r *Route) Commit(c *gin.Context) {
-	user, repoPath := c.Param("user"), c.Param("path")
-	slog.Debug("hit route", "route", "/repo/commit/:user/:path", "user", user, "path", repoPath)
-	c.JSON(http.StatusOK, gin.H{"title": "Commit", "repo": model.Repository{Path: repoPath, User: &model.User{Name: user}}})
-}

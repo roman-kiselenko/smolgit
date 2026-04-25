@@ -150,6 +150,7 @@ func (a *App) initWebServer(staticFiles embed.FS) error {
 	router.GET("/api/repos", r.Repos)
 	router.POST("/api/login", r.Login)
 	router.GET("/api/repos/files/:user/:path", r.Files)
+	router.GET("/api/repos/commits/:user/:path", r.Commits)
 
 	addr := a.Config.ServerAddr
 	go func() {
